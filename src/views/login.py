@@ -10,6 +10,17 @@ def hover(e):
         e.control.update()
 
 def login_view(page: ft.Page):
+    
+    def forgot_btn(e):
+        from views.forgot import forgot_view
+        page.clean()
+        page.add(forgot_view(page))
+    
+    def register_btn(e):
+        from views.register import register_view
+        page.clean()
+        page.add(register_view(page))
+    
     email = ft.TextField(
         expand=True,
         border_color='transparent',
@@ -51,7 +62,7 @@ def login_view(page: ft.Page):
                         controls=[
                             ft.Container(
                                 ft.Text(
-                                    "Fazer Login",
+                                    "Fazer login",
                                     color=ft.colors.SURFACE,
                                     size=38,
                                     weight='bold',
@@ -103,11 +114,12 @@ def login_view(page: ft.Page):
                             ft.Container(
                                 width=250,
                                 alignment=ft.alignment.center_right,
-                                content=ft.Text('Esqueceu a senha?', color='#ef233c', weight='w650', size=16)
+                                content=ft.Text('Esqueceu a senha?', color='#ef233c', weight='w650', size=16),
+                                on_click=forgot_btn
                             ),
                             ft.Container(
                                 content=ft.ElevatedButton(
-                                    text='Login',
+                                    text='Entrar',
                                     width=250,
                                     height=50,
                                     # on_click=signin,
@@ -130,8 +142,9 @@ def login_view(page: ft.Page):
                                             color='#ef233c',
                                             size=16,
                                             weight='bold'
-                                        )
-                                    )
+                                        ),
+                                        on_click=register_btn
+                                    ),
                                 ])
                             )
                         ]
