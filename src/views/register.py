@@ -11,11 +11,6 @@ def hover(e):
 
 def register_view(page: ft.Page):
     
-    def login_btn(e):
-        from views.login import login_view
-        page.clean()
-        page.add(login_view(page))
-    
     email = ft.TextField(
         expand=True,
         border_color='transparent',
@@ -109,7 +104,8 @@ def register_view(page: ft.Page):
                             ft.Container(
                                 width=250,
                                 alignment=ft.alignment.center_right,
-                                content=ft.Text('Esqueceu a senha?', color='#ef233c', weight='w650', size=16)
+                                content=ft.Text('Esqueceu a senha?', color='#ef233c', weight='bold', size=16),
+                                on_click=lambda _: page.go('/forgot')
                             ),
                             ft.Container(
                                 content=ft.ElevatedButton(
@@ -137,7 +133,7 @@ def register_view(page: ft.Page):
                                             size=16,
                                             weight='bold'
                                         ),
-                                        on_click=login_btn
+                                        on_click=lambda _: page.go('/login')
                                     )
                                 ])
                             )

@@ -11,11 +11,6 @@ def hover(e):
 
 def forgot_view(page: ft.Page):
     
-    def back_btn(e):
-        from views.login import login_view
-        page.clean()
-        page.add(login_view(page))
-    
     email = ft.TextField(
         expand=True,
         border_color='transparent',
@@ -85,11 +80,11 @@ def forgot_view(page: ft.Page):
                             ),
                             ft.IconButton(
                                 icon=ft.Icons.NAVIGATE_BEFORE,
-                                icon_color=ft.colors.SURFACE,
-                                bgcolor=ft.colors.ON_BACKGROUND,
+                                icon_color=ft.colors.ON_BACKGROUND,
+                                bgcolor=ft.colors.SURFACE,
                                 width=50,
                                 height=50,
-                                on_click=back_btn
+                                on_click=lambda _: page.go('/login')
                             )
                         ]
                     )

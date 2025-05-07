@@ -2,6 +2,8 @@ import flet as ft
 from temas import tema_claro, tema_escuro
 # from views.home import home_view
 from views.login import login_view
+from views.forgot import forgot_view
+from views.register import register_view
 
 def main(page: ft.Page):
 
@@ -18,6 +20,8 @@ def main(page: ft.Page):
 
     routes = {
         "/login": login_view,
+        "/forgot": forgot_view,
+        "/register": register_view,
         # "/": home_view,
     }
 
