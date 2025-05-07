@@ -9,7 +9,7 @@ def hover(e):
             e.control.opacity = 1.0  # Full opacity
         e.control.update()
 
-def login_view(page: ft.Page):
+def login_view(page: ft.Page, signin):
 
     email = ft.TextField(
         expand=True,
@@ -31,7 +31,7 @@ def login_view(page: ft.Page):
         content_padding=0
     )
 
-    return ft.View(
+    login_layout = ft.View(
         "/login",
         vertical_alignment='center',
         horizontal_alignment='center',
@@ -112,7 +112,7 @@ def login_view(page: ft.Page):
                                     text='Entrar',
                                     width=250,
                                     height=50,
-                                    # on_click=signin,
+                                    on_click=signin,
                                     on_hover=hover
                                 ),
                             ),
@@ -143,3 +143,5 @@ def login_view(page: ft.Page):
             )
         ]
     )
+    
+    return email, senha, login_layout

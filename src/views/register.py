@@ -9,7 +9,7 @@ def hover(e):
             e.control.opacity = 1.0  # Full opacity
         e.control.update()
 
-def register_view(page: ft.Page):
+def register_view(page: ft.Page, signup):
     
     email = ft.TextField(
         expand=True,
@@ -31,8 +31,8 @@ def register_view(page: ft.Page):
         content_padding=0
     )
 
-    return ft.View(
-        "/login",
+    register_layout = ft.View(
+        "/register",
         vertical_alignment='center',
         horizontal_alignment='center',
         controls=[
@@ -109,10 +109,10 @@ def register_view(page: ft.Page):
                             ),
                             ft.Container(
                                 content=ft.ElevatedButton(
-                                    text='Registro',
+                                    text='Registrar',
                                     width=250,
                                     height=50,
-                                    # on_click=signin,
+                                    on_click=signup,
                                     on_hover=hover
                                 ),
                             ),
@@ -143,3 +143,5 @@ def register_view(page: ft.Page):
             )
         ]
     )
+    
+    return email, senha, register_layout

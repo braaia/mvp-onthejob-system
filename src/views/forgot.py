@@ -9,7 +9,7 @@ def hover(e):
             e.control.opacity = 1.0  # Full opacity
         e.control.update()
 
-def forgot_view(page: ft.Page):
+def forgot_view(page: ft.Page, forgot):
     
     email = ft.TextField(
         expand=True,
@@ -20,8 +20,8 @@ def forgot_view(page: ft.Page):
         content_padding=0
     )
 
-    return ft.View(
-        "/login",
+    forgot_layout = ft.View(
+        "/forgot",
         vertical_alignment='center',
         horizontal_alignment='center',
         controls=[
@@ -74,7 +74,7 @@ def forgot_view(page: ft.Page):
                                     text='Enviar email',
                                     width=250,
                                     height=50,
-                                    # on_click=signin,
+                                    on_click=forgot,
                                     on_hover=hover
                                 ),
                             ),
@@ -92,3 +92,5 @@ def forgot_view(page: ft.Page):
             )
         ]
     )
+    
+    return email, forgot_layout
