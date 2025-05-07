@@ -103,7 +103,7 @@ def login_view(page: ft.Page):
                             ft.Container(
                                 width=250,
                                 alignment=ft.alignment.center_right,
-                                content=ft.Text('Esqueceu a senha?', color='#ef233c', weight='w600', size=16)
+                                content=ft.Text('Esqueceu a senha?', color='#ef233c', weight='w650', size=16)
                             ),
                             ft.Container(
                                 content=ft.ElevatedButton(
@@ -115,11 +115,24 @@ def login_view(page: ft.Page):
                                 ),
                             ),
                             ft.Container(
-                                width=250,
-                                alignment=ft.alignment.center_right,
                                 content=ft.Row(
-                                     
-                                )
+                                    alignment='center',
+                                    controls=[
+                                    ft.Text(
+                                        'Ainda não tem cadastro?',
+                                        size=16,
+                                        color=ft.colors.SURFACE,
+                                        weight='w320',
+                                    ),
+                                    ft.Container(
+                                        content=ft.Text(
+                                            'Criar conta',
+                                            color='#ef233c',
+                                            size=16,
+                                            weight='bold'
+                                        )
+                                    )
+                                ])
                             )
                         ]
                     )
