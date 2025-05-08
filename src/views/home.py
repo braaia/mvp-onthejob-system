@@ -59,7 +59,7 @@ def home_view(page: ft.Page):
 
     # BUTTONS - CAN CHANGE LABELS AND STYLING
     # botao_adicionar_atividade = ft.ElevatedButton("Adicionar Atividade", on_click=adicionar_atividade)
-    botao_enviar = ft.ElevatedButton("Enviar formulário", on_click=enviar_formulario, width=170, height=40, color=ft.colors.ON_SURFACE,)
+    botao_enviar = ft.ElevatedButton("Enviar formulário", on_click=enviar_formulario, width=170, height=40, color=ft.colors.SURFACE, bgcolor=ft.colors.ON_SURFACE)
 
     # PAGE LAYOUT - CAN REORGANIZE COMPONENTS
     home_layout = ft.View(
