@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-class ClienteIn(BaseModel):
+class ColaIn(BaseModel):
     colaborador: str
     cpf: str
     data_adm: str
@@ -9,5 +9,5 @@ class ClienteIn(BaseModel):
     nome_gestor: str
     cargo_gestor: str
 
-class ClienteOut(ClienteIn):
+class ColaOut(ColaIn):
     id: int

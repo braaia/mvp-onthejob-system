@@ -5,6 +5,7 @@ from views.home import home_view
 from views.login import login_view
 from views.forgot import forgot_view
 from views.register import register_view
+from views.listacola import lista
 
 firebaseConfig = {
     'apiKey': "AIzaSyDHhIIK5DtHzk3rBmnjl9wEe-YyAVw6Gh0",
@@ -19,6 +20,7 @@ firebaseConfig = {
 
 firebase = pyrebase.initialize_app(firebaseConfig)
 auth = firebase.auth()
+
 
 def main(page: ft.Page):
 
@@ -54,10 +56,11 @@ def main(page: ft.Page):
         return layout
 
     routes = {
+        "/": home_route,
         "/login": login_route,
         "/register": register_route,
         "/forgot": forgot_route,
-        "/": home_route,
+        "/lista_cola": lista,
     }
 
     # Login function - AUTHENTICATION LOGIC CAN BE MODIFIED
@@ -100,6 +103,7 @@ def main(page: ft.Page):
                 show_close_icon=True,
                 close_icon_color='black',
             ))
+            page.go("/")
             email = ''
             password = ''
             page.update()

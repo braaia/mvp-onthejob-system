@@ -20,20 +20,18 @@ def home_view(page: ft.Page):
 
     # FORM SUBMISSION - MAIN LOGIC CAN BE MODIFIED
     async def enviar_formulario(e):
-        with sqlite3.connect("on_the_job.db") as conn:
-            cursor = conn.cursor()
 
-            # Get all field values
-            colaborador = campo_colab.value
-            cpf = campo_matricula.value
-            admissao = campo_admissao.value
-            cargo = campo_cargo.value
-            depto = campo_departamento.value
-            gestor = campo_gestor.value
-            cargo_g = campo_cargo_gestor.value
+        # Get all field values
+        colaborador = campo_colab.value
+        cpf = campo_matricula.value
+        admissao = campo_admissao.value
+        cargo = campo_cargo.value
+        depto = campo_departamento.value
+        gestor = campo_gestor.value
+        cargo_g = campo_cargo_gestor.value
 
-            async with httpx.AsyncClient() as client:
-                await client.post(f"{API_URL}/clientes", json={"colaborador": colaborador, "cpf": cpf, "data_adm": admissao, "cargo": cargo, "departamento": depto, "nome_gestor": gestor, "cargo_gestor": cargo_g})
+        async with httpx.AsyncClient() as client:
+            await client.post(f"{API_URL}/clientes", json={"colaborador": colaborador, "cpf": cpf, "data_adm": admissao, "cargo": cargo, "departamento": depto, "nome_gestor": gestor, "cargo_gestor": cargo_g})
 
         # Clear form - RESET LOGIC CAN BE CHANGED
         campo_colab.value = ""
@@ -43,12 +41,6 @@ def home_view(page: ft.Page):
         campo_admissao.value = ""
         campo_gestor.value = ""
         campo_cargo_gestor.value = ""
-
-        # cons_colab.value = ""
-        # cons_gestor.value = ""
-        # status_final.value = None
-        # chk_colab.value = False
-        # chk_gestor.value = False
 
         page.update()
 
@@ -62,9 +54,13 @@ def home_view(page: ft.Page):
             ))
         page.update()
 
+    def theme_change(e):
+        page.theme_mode = "dark" if page.theme_mode == "light" else "light"
+        page.update()
+
     # BUTTONS - CAN CHANGE LABELS AND STYLING
     # botao_adicionar_atividade = ft.ElevatedButton("Adicionar Atividade", on_click=adicionar_atividade)
-    botao_enviar = ft.ElevatedButton("Enviar formulário", on_click=enviar_formulario, width=170, height=40, color=ft.colors.ON_SURFACE)
+    botao_enviar = ft.ElevatedButton("Enviar formulário", on_click=enviar_formulario, width=170, height=40, color=ft.colors.ON_SURFACE,)
 
     # PAGE LAYOUT - CAN REORGANIZE COMPONENTS
     home_layout = ft.View(
@@ -76,22 +72,18 @@ def home_view(page: ft.Page):
                 leading=ft.Icon(ft.Icons.HOME, color=ft.colors.SURFACE),
                 leading_width=50,
                 toolbar_height=70,
-                title=ft.Text("Programa ON THE JOB",size=32, color=ft.Colors.SURFACE),
+                title=ft.Text("Formulário ON THE JOB",size=32, color=ft.Colors.SURFACE),
                 center_title=False,
                 bgcolor=ft.Colors.ON_SURFACE,
                 actions=[
-                    ft.IconButton(ft.Icons.LIST, icon_color=ft.colors.SURFACE),
-                    ft.IconButton(ft.Icons.WB_SUNNY_OUTLINED, icon_color=ft.colors.SURFACE),
                     ft.PopupMenuButton(
+                        icon=ft.Icons.LIST, 
                         icon_color=ft.colors.SURFACE,
                         items=[
-                            ft.PopupMenuItem(text="Item 1"),
-                            ft.PopupMenuItem(),  # divider
-                            ft.PopupMenuItem(
-                                text="Checked item", checked=False,
-                            ),
+                            ft.PopupMenuItem('Lista de Colaboradores', on_click=lambda _: page.go("/lista_cola"))
                         ]
                     ),
+                    ft.IconButton(ft.Icons.WB_SUNNY_OUTLINED, icon_color=ft.colors.SURFACE, on_click=theme_change),
                 ],
             ),
             ft.Text("Admissão Colaborador", size=22, weight="bold", offset=ft.Offset(x=0, y=-0.95)),
