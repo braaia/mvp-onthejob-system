@@ -19,15 +19,15 @@ def listar():
     return models.listar_colaborador()
 
 
+@app.delete("/colaboradores/{id}")
+def remover(id: int):
+    models.deletar_cliente(id)
+    return {"ok": True}
+
+
 # @app.put("/colaboradores/{id}", response_model=ColaOut)
 # def editar(id: int, colaborador: ClienteIn):
 #     sucesso = models.atualizar_cliente(id, colaborador.nome, colaborador.email)
 #     if not sucesso:
 #         raise HTTPException(status_code=404, detail="Cliente não encontrado")
 #     return ColaOut(id=id, nome=colaborador.nome, email=colaborador.email)
-
-
-# @app.delete("/colaboradores/{id}")
-# def remover(id: int):
-#     models.deletar_cliente(id)
-#     return {"ok": True}

@@ -25,6 +25,14 @@ def listar_colaborador():
     return [ColaOut(id=x[0], colaborador=x[1], cpf=x[2], data_adm=x[3], cargo=x[4], departamento=x[5], nome_gestor=x[6], cargo_gestor=x[7]) for x in rows]
 
 
+def deletar_cliente(id: int):
+    conn = get_conn()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM admissao WHERE id = ?", (id,))
+    conn.commit()
+    conn.close()
+
+
 # def atualizar_cliente(id: int, nome: str, email: str):
 #     conn = get_conn()
 #     cursor = conn.cursor()
@@ -33,10 +41,3 @@ def listar_colaborador():
 #     updated = cursor.rowcount > 0
 #     conn.close()
 #     return updated
-
-# def deletar_cliente(id: int):
-#     conn = get_conn()
-#     cursor = conn.cursor()
-#     cursor.execute("DELETE FROM clientes WHERE id = ?", (id,))
-#     conn.commit()
-#     conn.close()
