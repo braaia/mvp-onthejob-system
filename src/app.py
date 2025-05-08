@@ -32,13 +32,6 @@ def main(page: ft.Page):
     page.theme = tema_claro
     page.dark_theme = tema_escuro
     page.theme_mode = 'light'
-    
-    # Variáveis globais para armazenar os campos
-    email_login = None
-    senha_login = None
-    email_register = None
-    senha_register = None
-    email_forgot = None
 
     def login_route(page):
         global email_login, senha_login  # Torna as variáveis acessíveis globalmente
