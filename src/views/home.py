@@ -27,13 +27,13 @@ conn.commit()
 def home_view(page: ft.Page):
 
     # FORM FIELDS - ALL CAN BE CUSTOMIZED (LABELS, SIZES, ETC.)
-    campo_colab = ft.TextField(label="Nome do colaborador", width=520, height=105)
-    campo_matricula = ft.TextField(label="Matrícula ou CPF", width=350, height=105, on_change=formatar_cpf)
-    campo_admissao = ft.TextField(label="Data de admissão", width=210, height=105, on_change=formatar_data)
-    campo_cargo = ft.TextField(label="Cargo", width=550, height=105)
-    campo_departamento = ft.TextField(label="Departamento", width=550, height=105)
-    campo_gestor = ft.TextField(label="Nome do gestor", width=550, height=105)
-    campo_cargo_gestor = ft.TextField(label="Cargo do gestor", width=550, height=105)
+    campo_colab = ft.TextField(label="Nome do colaborador", border_color=ft.colors.ON_SURFACE, width=520, height=105)
+    campo_matricula = ft.TextField(label="Matrícula ou CPF", border_color=ft.colors.ON_SURFACE, width=350, height=105, on_change=formatar_cpf)
+    campo_admissao = ft.TextField(label="Data de admissão", border_color=ft.colors.ON_SURFACE, width=210, height=105, on_change=formatar_data)
+    campo_cargo = ft.TextField(label="Cargo", width=550, border_color=ft.colors.ON_SURFACE, height=105)
+    campo_departamento = ft.TextField(label="Departamento", border_color=ft.colors.ON_SURFACE, width=550, height=105)
+    campo_gestor = ft.TextField(label="Nome do gestor", border_color=ft.colors.ON_SURFACE, width=550, height=105)
+    campo_cargo_gestor = ft.TextField(label="Cargo do gestor", border_color=ft.colors.ON_SURFACE, width=550, height=105)
 
     # FORM SUBMISSION - MAIN LOGIC CAN BE MODIFIED
     def enviar_formulario(e):
@@ -48,6 +48,7 @@ def home_view(page: ft.Page):
             admissao = campo_admissao.value or ""
             gestor = campo_gestor.value
             cargo_g = campo_cargo_gestor.value
+
             # cons_g = cons_gestor.value
             # cons_c = cons_colab.value
             # status = status_final.value
@@ -74,6 +75,7 @@ def home_view(page: ft.Page):
         campo_admissao.value = ""
         campo_gestor.value = ""
         campo_cargo_gestor.value = ""
+
         # cons_colab.value = ""
         # cons_gestor.value = ""
         # status_final.value = None
@@ -94,7 +96,7 @@ def home_view(page: ft.Page):
 
     # BUTTONS - CAN CHANGE LABELS AND STYLING
     # botao_adicionar_atividade = ft.ElevatedButton("Adicionar Atividade", on_click=adicionar_atividade)
-    botao_enviar = ft.ElevatedButton("Enviar formulário", on_click=enviar_formulario, offset=ft.Offset(x=0, y=-0.3))
+    botao_enviar = ft.ElevatedButton("Enviar formulário", on_click=enviar_formulario, width=170, height=40, color=ft.colors.ON_SURFACE)
 
     # PAGE LAYOUT - CAN REORGANIZE COMPONENTS
     home_layout = ft.View(
@@ -105,13 +107,12 @@ def home_view(page: ft.Page):
             ft.AppBar(
                 leading=ft.Icon(ft.Icons.HOME, color=ft.colors.SURFACE),
                 leading_width=50,
-                toolbar_height=80,
-                shadow_color=ft.BoxShadow(blur_radius=18, color=ft.Colors.with_opacity(0.8, ft.colors.ON_BACKGROUND)),
+                toolbar_height=70,
                 title=ft.Text("Programa ON THE JOB",size=32, color=ft.Colors.SURFACE),
                 center_title=False,
                 bgcolor=ft.Colors.ON_SURFACE,
                 actions=[
-                    ft.IconButton(ft.Icons.FILTER_3, icon_color=ft.colors.SURFACE),
+                    ft.IconButton(ft.Icons.LIST, icon_color=ft.colors.SURFACE),
                     ft.IconButton(ft.Icons.WB_SUNNY_OUTLINED, icon_color=ft.colors.SURFACE),
                     ft.PopupMenuButton(
                         icon_color=ft.colors.SURFACE,
@@ -119,28 +120,20 @@ def home_view(page: ft.Page):
                             ft.PopupMenuItem(text="Item 1"),
                             ft.PopupMenuItem(),  # divider
                             ft.PopupMenuItem(
-                                text="Checked item", checked=False
+                                text="Checked item", checked=False,
                             ),
                         ]
                     ),
                 ],
             ),
-            # ft.Text("Programa ON THE JOB", size=30, weight="bold",),
-            ft.Row([campo_colab, campo_matricula, campo_admissao], spacing=20, alignment=ft.MainAxisAlignment.CENTER,
-                # offset=ft.Offset(x=0, y=0.25),
-            ),
-            ft.Row([campo_cargo, campo_departamento], spacing=20, alignment=ft.MainAxisAlignment.CENTER,
-                # offset=ft.Offset(x=0, y=0),
-            ),
-
-            ft.Text("Gestor", size=22, weight="bold", offset=ft.Offset(x=0, y=-0.55)),
-            ft.Row([campo_gestor, campo_cargo_gestor],spacing=20, alignment=ft.MainAxisAlignment.CENTER,
-                # offset=ft.Offset(x=0, y=-0.1),
-            ),
+            ft.Text("Admissão Colaborador", size=22, weight="bold", offset=ft.Offset(x=0, y=-0.95)),
+            ft.Row([campo_colab, campo_matricula, campo_admissao], spacing=20, alignment=ft.MainAxisAlignment.CENTER),
+            ft.Row([campo_cargo, campo_departamento], spacing=20, alignment=ft.MainAxisAlignment.CENTER),
+            ft.Text("Gestor", size=22, weight="bold", offset=ft.Offset(x=0, y=-0.95)),
+            ft.Row([campo_gestor, campo_cargo_gestor],spacing=20, alignment=ft.MainAxisAlignment.CENTER),
 
             ft.Container(
                 content=botao_enviar,
-                # offset=ft.Offset(x=0, y=-0.082),
             )
         ]
     )
