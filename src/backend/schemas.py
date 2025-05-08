@@ -1,9 +1,9 @@
 from pydantic import BaseModel
 
 class ClienteIn(BaseModel):
-    nome: str
+    colaborador: str
     cpf: str
-    data: str
+    data_adm: str
     cargo: str
     departamento: str
     nome_gestor: str
