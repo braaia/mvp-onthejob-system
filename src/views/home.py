@@ -1,28 +1,11 @@
 import flet as ft
-import sqlite3
+import sqlite3, httpx, asyncio
 from datetime import date
 from reportlab.pdfgen import canvas # PDF generation library
 from reportlab.lib.pagesizes import A4 # A4 page size for PDF
 from backend.formatting import formatar_cpf, formatar_data
 
-# DATABASE CONNECTION - CAN CHANGE DATABASE NAME
-conn = sqlite3.connect("on_the_job.db")
-cursor = conn.cursor()
-
-cursor.execute("""
-    CREATE TABLE IF NOT EXISTS formularios (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        colaborador TEXT,
-        matricula TEXT,
-        cargo TEXT,
-        departamento TEXT,
-        admissao TEXT,
-        gestor TEXT,
-        cargo_gestor TEXT,
-        data_envio TEXT
-    )
-""")
-conn.commit()
+API_URL = "http://localhost:8000"
 
 def home_view(page: ft.Page):
 
@@ -36,36 +19,21 @@ def home_view(page: ft.Page):
     campo_cargo_gestor = ft.TextField(label="Cargo do gestor", border_color=ft.colors.ON_SURFACE, width=550, height=105)
 
     # FORM SUBMISSION - MAIN LOGIC CAN BE MODIFIED
-    def enviar_formulario(e):
+    async def enviar_formulario(e):
         with sqlite3.connect("on_the_job.db") as conn:
             cursor = conn.cursor()
 
             # Get all field values
             colaborador = campo_colab.value
-            matricula = campo_matricula.value
+            cpf = campo_matricula.value
+            admissao = campo_admissao.value
             cargo = campo_cargo.value
             depto = campo_departamento.value
-            admissao = campo_admissao.value or ""
             gestor = campo_gestor.value
             cargo_g = campo_cargo_gestor.value
 
-            # cons_g = cons_gestor.value
-            # cons_c = cons_colab.value
-            # status = status_final.value
-            # ass_colab = 1 if chk_colab.value else 0
-            # ass_gestor = 1 if chk_gestor.value else 0
-
-            # Insert form data
-            cursor.execute("""
-                INSERT INTO formularios (
-                    colaborador, matricula, cargo, departamento, admissao,
-                    gestor, cargo_gestor, data_envio
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                colaborador, matricula, cargo, depto, admissao,
-                gestor, cargo_g, date.today().isoformat()
-            ))
-            conn.commit()
+            async with httpx.AsyncClient() as client:
+                await client.post(f"{API_URL}/clientes", json={"colaborador": colaborador, "cpf": cpf, "data_adm": admissao, "cargo": cargo, "departamento": depto, "nome_gestor": gestor, "cargo_gestor": cargo_g})
 
         # Clear form - RESET LOGIC CAN BE CHANGED
         campo_colab.value = ""
