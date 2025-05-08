@@ -1,7 +1,7 @@
 import flet as ft
 import pyrebase
-from temas import tema_claro, tema_escuro
-# from views.home import home_view
+from backend.temas import tema_claro, tema_escuro
+from views.home import home_view
 from views.login import login_view
 from views.forgot import forgot_view
 from views.register import register_view
@@ -47,12 +47,17 @@ def main(page: ft.Page):
         global email_forgot
         email_forgot, layout = forgot_view(page, btn_forgot)
         return layout
+    
+    def home_route(page):
+        global layout
+        layout = home_view(page)
+        return layout
 
     routes = {
         "/login": login_route,
         "/register": register_route,
         "/forgot": forgot_route,
-        # "/": home_view,
+        "/": home_route,
     }
 
     # Login function - AUTHENTICATION LOGIC CAN BE MODIFIED
@@ -226,6 +231,6 @@ def main(page: ft.Page):
     page.on_route_change = route_change
     page.on_view_pop = view_pop
 
-    page.go(page.route)
+    page.go('/')
 
 ft.app(target=main)
