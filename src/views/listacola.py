@@ -20,7 +20,7 @@ def lista(page: ft.Page):
                 bgcolor=ft.Colors.ON_SURFACE,
                 actions=[
                     ft.PopupMenuButton(
-                        icon=ft.Icons.LIST, 
+                        icon=ft.Icons.LIST,
                         icon_color=ft.colors.SURFACE,
                         items=[
                             ft.PopupMenuItem('Formulário', on_click=lambda _: page.go("/"))
@@ -28,7 +28,7 @@ def lista(page: ft.Page):
                     ),
                     ft.IconButton(ft.Icons.WB_SUNNY_OUTLINED, icon_color=ft.colors.SURFACE, on_click=theme_change),
                 ]
-            )
+            ),
         ]
     )
 

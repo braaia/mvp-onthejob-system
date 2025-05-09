@@ -28,7 +28,7 @@ def home_view(page: ft.Page):
         depto = campo_departamento.value
         gestor = campo_gestor.value
         cargo_g = campo_cargo_gestor.value
-
+        
         async with httpx.AsyncClient() as client:
             await client.post(f"{API_URL}/colaboradores", json={"colaborador": colaborador, "cpf": cpf, "data_adm": admissao, "cargo": cargo, "departamento": depto, "nome_gestor": gestor, "cargo_gestor": cargo_g})
 
