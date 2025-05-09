@@ -18,3 +18,17 @@ def init_db():
         )
     """)
     conn.commit()
+    
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS atividades (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        formulario_id INTEGER,
+        atividade TEXT,
+        comentario_colaborador TEXT,
+        comentario_gestor TEXT,
+        status TEXT,
+        data TEXT,
+        FOREIGN KEY (formulario_id) REFERENCES formularios(id)
+        )
+    """)
+    conn.commit()
