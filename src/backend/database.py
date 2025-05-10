@@ -1,34 +1,36 @@
 import sqlite3
 
-
 def init_db():
     conn = sqlite3.connect("on_the_job.db")
     cursor = conn.cursor()
 
+    # Tabela admissao
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS admissao (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            colaborador TEXT,
-            cpf TEXT,
-            data_adm TEXT,
-            cargo TEXT,
-            departamento TEXT,
-            nome_gestor TEXT,
-            cargo_gestor TEXT
+            colaborador TEXT NOT NULL,
+            cpf TEXT NOT NULL,
+            data_adm TEXT NOT NULL,
+            cargo TEXT NOT NULL,
+            departamento TEXT NOT NULL,
+            nome_gestor TEXT NOT NULL,
+            cargo_gestor TEXT NOT NULL
         )
     """)
     conn.commit()
     
+    # Tabela atividades
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS atividades (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        formulario_id INTEGER,
-        atividade TEXT,
-        comentario_colaborador TEXT,
-        comentario_gestor TEXT,
-        status TEXT,
-        data TEXT,
-        FOREIGN KEY (formulario_id) REFERENCES formularios(id)
+        CREATE TABLE IF NOT EXISTS atividades (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            colaborador_id INTEGER NOT NULL,
+            descricao TEXT NOT NULL,
+            comentario_colaborador TEXT,
+            comentario_gestor TEXT,
+            status TEXT NOT NULL,
+            data TEXT NOT NULL,
+            FOREIGN KEY (colaborador_id) REFERENCES admissao(id)
         )
     """)
     conn.commit()
+    conn.close()
