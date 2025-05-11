@@ -1,11 +1,11 @@
-import flet as ft
 import pyrebase
-from backend.temas import tema_claro, tema_escuro
+import flet as ft
 from views.home import home_view
-from views.login import login_view
-from views.forgot import forgot_view
-from views.register import register_view
-from views.listacola import lista
+from views.lista_cola import lista
+from views.detalhes_cola import view_detalhes
+from views.loadingpage.loading import loading_view
+from views.loginpage import login, forgot, register
+from backend.functions.temas import tema_claro, tema_escuro
 
 firebaseConfig = {
     'apiKey': "AIzaSyDHhIIK5DtHzk3rBmnjl9wEe-YyAVw6Gh0",
@@ -21,6 +21,7 @@ firebaseConfig = {
 firebase = pyrebase.initialize_app(firebaseConfig)
 auth = firebase.auth()
 
+API_URL = "http://localhost:8000"
 
 def main(page: ft.Page):
 
@@ -34,20 +35,20 @@ def main(page: ft.Page):
     page.theme = tema_claro
     page.dark_theme = tema_escuro
     page.theme_mode = 'light'
-
+    
     def login_route(page):
         global email_login, senha_login  # Torna as variáveis acessíveis globalmente
-        email_login, senha_login, layout = login_view(page, btn_login)
+        email_login, senha_login, layout = login.login_view(page, btn_login)
         return layout
 
     def register_route(page):
         global email_register, senha_register  # Torna as variáveis acessíveis globalmente
-        email_register, senha_register, layout = register_view(page, btn_register)
+        email_register, senha_register, layout = register.register_view(page, btn_register)
         return layout
     
     def forgot_route(page):
         global email_forgot
-        email_forgot, layout = forgot_view(page, btn_forgot)
+        email_forgot, layout = forgot.forgot_view(page, btn_forgot)
         return layout
     
     def home_route(page):
@@ -60,6 +61,7 @@ def main(page: ft.Page):
         "/login": login_route,
         "/register": register_route,
         "/forgot": forgot_route,
+        "/loading": loading_view,
         "/lista_cola": lista,
     }
 
@@ -214,13 +216,21 @@ def main(page: ft.Page):
             ))
             email = ''
             page.update()
-            
 
     def route_change(e):
         page.views.clear()
 
-        if page.route not in routes:
-            page.go("/login")
+        if page.route.startswith("/colaborador/"):  # Verifica se a rota é de um colaborador
+            parts = page.route.split("/")
+            if len(parts) >= 3 and parts[1] == "colaborador" and parts[2].isdigit():
+                colab_id = parts[2]  # Obtém o ID do colaborador da URL
+                page.views.append(view_detalhes(page, colab_id))  # Carrega a tela de detalhes do colaborador
+            else:
+                page.go("/")  # Redireciona para login se a rota for inválida
+                return
+
+        elif page.route not in routes:
+            page.go("/")
             return
 
         elif page.route in routes:
