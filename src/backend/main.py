@@ -34,6 +34,11 @@ def listar_colaboradores():
     """Lista todos os colaboradores cadastrados."""
     return models.listar_colaborador()
 
+@app.get("/colaboradores/{id}", response_model=list[ColaOut])
+def listar_colaboradores(id: int):
+    """Lista todos os colaboradores cadastrados."""
+    return models.listar_colaborador_individual(id)
+
 @app.get("/colaboradores/{id}/atividades", response_model=list[AtividadeOut])
 def listar_atividades(id: int):
     """Lista todas as atividades de um colaborador pelo ID."""
