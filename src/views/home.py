@@ -3,7 +3,8 @@ import sqlite3, httpx, asyncio
 from datetime import date
 from reportlab.pdfgen import canvas # PDF generation library
 from reportlab.lib.pagesizes import A4 # A4 page size for PDF
-from backend.formatting import formatar_cpf, formatar_data
+from backend.functions import formatting, temas
+from backend.functions.formatting import hover
 
 API_URL = "http://localhost:8000"
 
@@ -11,8 +12,8 @@ def home_view(page: ft.Page):
 
     # FORM FIELDS - ALL CAN BE CUSTOMIZED (LABELS, SIZES, ETC.)
     campo_colab = ft.TextField(label="Nome do colaborador", border_color=ft.colors.ON_SURFACE, width=520, height=105)
-    campo_matricula = ft.TextField(label="Matrícula ou CPF", border_color=ft.colors.ON_SURFACE, width=350, height=105, on_change=formatar_cpf)
-    campo_admissao = ft.TextField(label="Data de admissão", border_color=ft.colors.ON_SURFACE, width=210, height=105, on_change=formatar_data)
+    campo_matricula = ft.TextField(label="Matrícula ou CPF", border_color=ft.colors.ON_SURFACE, width=350, height=105, on_change=formatting.formatar_cpf)
+    campo_admissao = ft.TextField(label="Data de admissão", border_color=ft.colors.ON_SURFACE, width=210, height=105, on_change=formatting.formatar_data)
     campo_cargo = ft.TextField(label="Cargo", width=550, border_color=ft.colors.ON_SURFACE, height=105)
     campo_departamento = ft.TextField(label="Departamento", border_color=ft.colors.ON_SURFACE, width=550, height=105)
     campo_gestor = ft.TextField(label="Nome do gestor", border_color=ft.colors.ON_SURFACE, width=550, height=105)
@@ -53,13 +54,9 @@ def home_view(page: ft.Page):
             ))
         page.update()
 
-    def theme_change(e):
-        page.theme_mode = "dark" if page.theme_mode == "light" else "light"
-        page.update()
-
     # BUTTONS - CAN CHANGE LABELS AND STYLING
     # botao_adicionar_atividade = ft.ElevatedButton("Adicionar Atividade", on_click=adicionar_atividade)
-    botao_enviar = ft.ElevatedButton("Enviar formulário", on_click=enviar_formulario, width=170, height=40, color=ft.colors.SURFACE, bgcolor=ft.colors.ON_SURFACE)
+    botao_enviar = ft.ElevatedButton("Enviar formulário", on_click=enviar_formulario, on_hover=hover, width=170, height=40, color=ft.colors.SURFACE, bgcolor=ft.colors.ON_SURFACE)
 
     # PAGE LAYOUT - CAN REORGANIZE COMPONENTS
     home_layout = ft.View(
@@ -68,21 +65,23 @@ def home_view(page: ft.Page):
         horizontal_alignment='center',
         controls=[
             ft.AppBar(
-                leading=ft.Icon(ft.Icons.HOME, color=ft.colors.SURFACE),
+                leading=ft.IconButton(ft.Icons.HOME, icon_color=ft.colors.SURFACE, on_click=lambda e: page.go("/")),
                 leading_width=50,
                 toolbar_height=70,
                 title=ft.Text("Formulário ON THE JOB",size=32, color=ft.Colors.SURFACE),
                 center_title=False,
                 bgcolor=ft.Colors.ON_SURFACE,
                 actions=[
+                    ft.IconButton(ft.Icons.WB_SUNNY_OUTLINED, icon_color=ft.colors.SURFACE, on_click=temas.theme_change),
                     ft.PopupMenuButton(
                         icon=ft.Icons.LIST, 
                         icon_color=ft.colors.SURFACE,
                         items=[
+                            ft.PopupMenuItem('USER', on_click=lambda _: print("User")),
+                            ft.PopupMenuItem(),
                             ft.PopupMenuItem('Lista de Colaboradores', on_click=lambda _: page.go("/lista_cola"))
                         ]
                     ),
-                    ft.IconButton(ft.Icons.WB_SUNNY_OUTLINED, icon_color=ft.colors.SURFACE, on_click=theme_change),
                 ],
             ),
             ft.Text("Admissão Colaborador", size=22, weight="bold", offset=ft.Offset(x=0, y=-0.95)),
