@@ -1,6 +1,5 @@
 import sqlite3
 from backend.schemas import ColaOut, AtividadeCreate, AtividadeOut
-from datetime import datetime
 
 def get_conn():
     return sqlite3.connect("on_the_job.db")
@@ -40,6 +39,36 @@ def listar_colaborador():
     cursor = conn.cursor()
     try:
         cursor.execute("SELECT id, colaborador, cpf, data_adm, cargo, departamento, nome_gestor, cargo_gestor FROM admissao")
+        rows = cursor.fetchall()
+        return [
+            ColaOut(
+                id=row[0],
+                colaborador=row[1],
+                cpf=row[2],
+                data_adm=row[3],
+                cargo=row[4],
+                departamento=row[5],
+                nome_gestor=row[6],
+                cargo_gestor=row[7],
+                atividades=listar_atividades_por_colaborador(row[0])
+            )
+            for row in rows
+        ]
+    finally:
+        conn.close()
+
+def listar_colaborador_individual(colab_id: int):
+    """Retorna uma lista de todos os colaboradores cadastrados."""
+    conn = get_conn()
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            """SELECT id, colaborador, cpf, data_adm, cargo, departamento, nome_gestor, cargo_gestor 
+            FROM admissao 
+            WHERE id = ?
+            """,
+            (colab_id,),
+        )
         rows = cursor.fetchall()
         return [
             ColaOut(
