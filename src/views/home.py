@@ -5,6 +5,7 @@ from reportlab.pdfgen import canvas # PDF generation library
 from reportlab.lib.pagesizes import A4 # A4 page size for PDF
 from backend.functions import formatting, temas
 from backend.functions.formatting import hover
+from backend.auth import get_me, get_token
 
 API_URL = "http://localhost:8000"
 
@@ -58,6 +59,24 @@ def home_view(page: ft.Page):
     # botao_adicionar_atividade = ft.ElevatedButton("Adicionar Atividade", on_click=adicionar_atividade)
     botao_enviar = ft.ElevatedButton("Enviar formulário", on_click=enviar_formulario, on_hover=hover, width=170, height=40, color=ft.colors.SURFACE, bgcolor=ft.colors.ON_SURFACE)
 
+    status = ft.Text()
+
+    async def ver_cargo_click(e):
+        if not get_token():
+            status.value = "Você precisa estar logado."
+            page.update()
+            return
+
+        async with httpx.AsyncClient() as client:
+            r = await client.get(f"{API_URL}/me", headers={"Authorization": f"Bearer {get_token()}"})
+        if r.status_code == 200:
+            dados = await get_me()
+            status.value = f"Você é '{dados['cargo']}' com email '{dados['email']}'"
+        else:
+            status.value = f"Erro: {r.json()['detail']}"
+        page.update()
+
+
     # PAGE LAYOUT - CAN REORGANIZE COMPONENTS
     home_layout = ft.View(
         "/",
@@ -72,6 +91,7 @@ def home_view(page: ft.Page):
                 center_title=False,
                 bgcolor=ft.Colors.ON_SURFACE,
                 actions=[
+                    ft.IconButton(ft.Icons.SETTINGS, icon_color=ft.colors.SURFACE, on_click=ver_cargo_click),
                     ft.IconButton(ft.Icons.WB_SUNNY_OUTLINED, icon_color=ft.colors.SURFACE, on_click=temas.theme_change),
                     ft.PopupMenuButton(
                         icon=ft.Icons.LIST, 
@@ -89,7 +109,7 @@ def home_view(page: ft.Page):
             ft.Row([campo_cargo, campo_departamento], spacing=20, alignment=ft.MainAxisAlignment.CENTER),
             ft.Text("Gestor", size=22, weight="bold", offset=ft.Offset(x=0, y=-0.95)),
             ft.Row([campo_gestor, campo_cargo_gestor],spacing=20, alignment=ft.MainAxisAlignment.CENTER),
-
+            status,
             ft.Container(
                 content=botao_enviar,
             )

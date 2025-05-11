@@ -1,11 +1,13 @@
 import pyrebase
 import flet as ft
+import httpx
 from views.home import home_view
 from views.lista_cola import lista
 from views.detalhes_cola import view_detalhes
 from views.loadingpage.loading import loading_view
 from views.loginpage import login, forgot, register
 from backend.functions.temas import tema_claro, tema_escuro
+from backend.auth import login_tokens, registrar_click
 
 firebaseConfig = {
     'apiKey': "AIzaSyDHhIIK5DtHzk3rBmnjl9wEe-YyAVw6Gh0",
@@ -35,6 +37,8 @@ def main(page: ft.Page):
     page.theme = tema_claro
     page.dark_theme = tema_escuro
     page.theme_mode = 'light'
+
+    token = None
     
     def login_route(page):
         global email_login, senha_login  # Torna as variáveis acessíveis globalmente
@@ -68,7 +72,7 @@ def main(page: ft.Page):
     # Login function - AUTHENTICATION LOGIC CAN BE MODIFIED
     import re
 
-    def btn_login(e):
+    async def btn_login(e):
         global email_login, senha_login
         
         email = email_login.value
@@ -97,7 +101,10 @@ def main(page: ft.Page):
             return
 
         try:
+            await login_tokens(email, password)
+
             auth.sign_in_with_email_and_password(email, password)
+
             page.open(ft.SnackBar(
                 content=ft.Text(value="Logado com sucesso!", size=16, color='black', weight='bold', font_family='Arial', italic=True),
                 bgcolor="green",
@@ -121,7 +128,7 @@ def main(page: ft.Page):
             password = ''
             page.update()
     
-    def btn_register(e):
+    async def btn_register(e):
         global email_register, senha_register
         
         email = email_register.value
@@ -150,6 +157,8 @@ def main(page: ft.Page):
             return
 
         try:
+            await registrar_click(email, password)
+
             auth.create_user_with_email_and_password(email, password)
             # Success notification - MESSAGE AND STYLING CAN BE CHANGED
             page.open(ft.SnackBar(
@@ -217,6 +226,20 @@ def main(page: ft.Page):
             email = ''
             page.update()
 
+    async def acessar_admin(e):
+        async with httpx.AsyncClient() as client:
+            r = await client.get(f"{API_URL}/painel_admin", headers={"Authorization": f"Bearer {token}"})
+        status = r.json().get("msg", "Erro.")
+        print(status)
+        page.update()
+
+    async def acessar_usuario(e):
+        async with httpx.AsyncClient() as client:
+            r = await client.get(f"{API_URL}/painel_usuario", headers={"Authorization": f"Bearer {token}"})
+        status = r.json().get("msg", "Erro.")
+        print(status)
+        page.update()
+
     def route_change(e):
         page.views.clear()
 
@@ -245,6 +268,6 @@ def main(page: ft.Page):
     page.on_route_change = route_change
     page.on_view_pop = view_pop
 
-    page.go('/')
+    page.go('/login')
 
 ft.app(target=main)

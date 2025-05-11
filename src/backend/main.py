@@ -2,9 +2,7 @@ from backend.schemas import ColaIn, ColaOut, AtividadeCreate, AtividadeOut
 from backend import models, database
 from fastapi import FastAPI, HTTPException, Depends, Header
 from fastapi.security import OAuth2PasswordRequestForm
-from jose import jwt, JWTError
-from passlib.hash import bcrypt
-from datetime import datetime, timedelta
+import sqlite3
 
 app = FastAPI(
     title="API de Colaboradores",
@@ -93,3 +91,74 @@ def remover_colaborador(id: int):
     if not sucesso:
         raise HTTPException(status_code=404, detail="Colaborador não encontrado")
     return {"detail": "Colaborador removido com sucesso"}
+
+
+@app.post("/register", tags=["Logins"])
+def register(email: str, senha: str):
+    conn = sqlite3.connect("on_the_job.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT COUNT(*) FROM users")
+    total = cursor.fetchone()[0]
+    conn.close()
+
+    # Primeiro usuário será admin
+    cargo = "admin" if total == 0 else "colaborador"
+    models.create_user(email, senha, cargo)
+    return {"msg": f"Usuário criado com sucesso! Cargo: {cargo}"}
+
+
+@app.post("/set_cargo", tags=["Logins"])
+def set_cargo(target_email: str, novo_cargo: str, authorization: str = Header(...)):
+    token = authorization.split(" ")[1]
+    dados = models.decode_token(token)
+
+    if dados["cargo"] != "admin":
+        raise HTTPException(status_code=403, detail="Somente administradores podem mudar cargos.")
+
+    if novo_cargo not in ["admin", "colaborador"]:
+        raise HTTPException(status_code=400, detail="Cargo inválido.")
+
+    if not models.get_user(target_email):
+        raise HTTPException(status_code=404, detail="Usuário não encontrado.")
+
+    conn = sqlite3.connect("on_the_job.db")
+    cursor = conn.cursor()
+    cursor.execute("UPDATE users SET cargo = ? WHERE email = ?", (novo_cargo, target_email))
+    conn.commit()
+    conn.close()
+
+    return {"msg": f"Cargo de {target_email} alterado para {novo_cargo}."}
+
+@app.post("/login", tags=["Logins"])
+def login(form_data: OAuth2PasswordRequestForm = Depends()):
+    email = form_data.username
+    senha = form_data.password
+    if not models.authenticate_user(email, senha):
+        raise HTTPException(status_code=401, detail="Credenciais inválidas.")
+    user = models.get_user(email)
+    token = models.create_token(email, user[3])
+    return {"access_token": token, "token_type": "bearer"}
+
+@app.get("/painel_admin", tags=["Logins"])
+def painel_admin(authorization: str = Header(...)):
+    token = authorization.split(" ")[1]
+    dados = models.decode_token(token)
+    if dados["cargo"] != "admin":
+        raise HTTPException(status_code=403, detail="Acesso negado.")
+    return {"msg": f"Bem-vindo, {dados['sub']} (admin)"}
+
+@app.get("/painel_usuario", tags=["Logins"])
+def painel_usuario(authorization: str = Header(...)):
+    token = authorization.split(" ")[1]
+    dados = models.decode_token(token)
+    return {"msg": f"Bem-vindo, {dados['sub']} ({dados['cargo']})"}
+
+@app.get("/me", tags=["Logins"])
+def get_me(authorization: str = Header(...)):
+    token = authorization.split(" ")[1]
+    dados = models.decode_token(token)
+
+    return {
+        "email": dados["sub"],
+        "cargo": dados["cargo"]
+    }

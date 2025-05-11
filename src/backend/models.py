@@ -1,5 +1,13 @@
 import sqlite3
 from backend.schemas import ColaOut, AtividadeCreate, AtividadeOut
+from fastapi import HTTPException
+from jose import jwt, JWTError
+from passlib.hash import bcrypt
+from datetime import datetime, timedelta
+
+SECRET_KEY = "segredo-supersecreto"
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 def get_conn():
     return sqlite3.connect("on_the_job.db")
@@ -87,6 +95,23 @@ def listar_colaborador_individual(colab_id: int):
     finally:
         conn.close()
 
+def adicionar_atividade(atividade: AtividadeCreate):
+    """Adiciona uma atividade ao banco de dados."""
+    conn = get_conn()
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            """
+            INSERT INTO atividades (colaborador_id, descricao, comentario_colaborador, comentario_gestor, status, data)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            (atividade.colaborador_id, atividade.descricao, atividade.comentario_colaborador, atividade.comentario_gestor, atividade.status, atividade.data),
+        )
+        conn.commit()
+        return cursor.lastrowid
+    finally:
+        conn.close()
+
 def listar_atividades_por_colaborador(colaborador_id: int):
     """Retorna todas as atividades associadas a um colaborador."""
     conn = get_conn()
@@ -116,24 +141,6 @@ def listar_atividades_por_colaborador(colaborador_id: int):
     finally:
         conn.close()
 
-def adicionar_atividade(atividade: AtividadeCreate):
-    """Adiciona uma atividade ao banco de dados."""
-    conn = get_conn()
-    cursor = conn.cursor()
-    try:
-        cursor.execute(
-            """
-            INSERT INTO atividades (colaborador_id, descricao, comentario_colaborador, comentario_gestor, status, data)
-            VALUES (?, ?, ?, ?, ?, ?)
-            """,
-            (atividade.colaborador_id, atividade.descricao, atividade.comentario_colaborador, atividade.comentario_gestor, atividade.status, atividade.data),
-        )
-        conn.commit()
-        return cursor.lastrowid
-    finally:
-        conn.close()
-
-
 def atualizar_colaborador(id: int, nome: str, cpf: str, data_adm: str, cargo: str, depart: str, nome_gestor: str, cargo_gestor: str):
     """Atualiza os dados de um colaborador pelo ID."""
     conn = get_conn()
@@ -151,3 +158,43 @@ def atualizar_colaborador(id: int, nome: str, cpf: str, data_adm: str, cargo: st
         return cursor.rowcount > 0
     finally:
         conn.close()
+
+
+def get_user(email: str):
+    conn = sqlite3.connect("on_the_job.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM users WHERE email = ?", (email,))
+    user = cursor.fetchone()
+    conn.close()
+    return user
+
+def create_user(email, senha, cargo):
+    if get_user(email):
+        raise HTTPException(status_code=400, detail="Usuário já existe.")
+    conn = sqlite3.connect("on_the_job.db")
+    cursor = conn.cursor()
+    senha_hash = bcrypt.hash(senha)
+    cursor.execute("INSERT INTO users (email, senha, cargo) VALUES (?, ?, ?)",
+                   (email, senha_hash, cargo))
+    conn.commit()
+    conn.close()
+
+def authenticate_user(email, senha):
+    user = get_user(email)
+    if not user:
+        return False
+    return bcrypt.verify(senha, user[2])
+
+def create_token(email, cargo):
+    payload = {
+        "sub": email,
+        "cargo": cargo,
+        "exp": datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    }
+    return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+
+def decode_token(token: str):
+    try:
+        return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Token inválido ou expirado")
