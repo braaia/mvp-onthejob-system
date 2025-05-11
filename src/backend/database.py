@@ -33,4 +33,14 @@ def init_db():
         )
     """)
     conn.commit()
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT UNIQUE NOT NULL,
+            senha TEXT NOT NULL,
+            cargo TEXT NOT NULL     
+        )
+    """)
+    conn.commit()
     conn.close()
