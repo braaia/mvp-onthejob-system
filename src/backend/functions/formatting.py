@@ -1,4 +1,14 @@
-# FORMATTING FUNCTIONS - CAN BE MODIFIED FOR DIFFERENT FORMATS
+
+
+def hover(e):
+    if e.data == "true":
+        e.control.scale = 1.06  # Scale up on hover
+        e.control.opacity = 0.8  # Slightly transparent on hover
+    else:
+        e.control.scale = 1.0  # Normal scale
+        e.control.opacity = 1.0  # Full opacity
+    e.control.update()
+
 def formatar_cpf(e):
     cpf = e.control.value
     cpf = ''.join(filter(str.isdigit, cpf))  # Remove caracteres não numéricos
