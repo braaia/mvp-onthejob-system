@@ -249,7 +249,7 @@ def main(page: ft.Page):
                 colab_id = parts[2]  # Obtém o ID do colaborador da URL
                 page.views.append(view_detalhes(page, colab_id))  # Carrega a tela de detalhes do colaborador
             else:
-                page.go("/")  # Redireciona para login se a rota for inválida
+                page.go("/") 
                 return
 
         elif page.route not in routes:
