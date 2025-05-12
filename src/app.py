@@ -262,7 +262,10 @@ def main(page: ft.Page):
         page.update()
 
     def view_pop(e):
-        page.views.pop()
+        if page.views:
+            page.views.pop()
+        else:
+            print("Aviso: Nenhuma view para remover.")
         page.update()
 
     page.on_route_change = route_change

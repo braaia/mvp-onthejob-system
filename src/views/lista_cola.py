@@ -42,7 +42,7 @@ def lista(page: ft.Page):
                             ft.Text(f"Gestor: {colab['nome_gestor']}"),
                             ft.Text(f"Admissão: {colab['data_adm'][:10]}"),
                             ft.ElevatedButton(
-                                "Ver Detalhes", color=ft.colors.SURFACE, bgcolor=ft.colors.ON_SURFACE, on_hover=hover,
+                                "Ver Detalhes", color=ft.Colors.SURFACE, bgcolor=ft.Colors.ON_SURFACE, on_hover=hover,
                                 on_click=lambda e, cid=colab['id']: page.go(f"/colaborador/{cid}/atividades")
                             )
                         ]),
@@ -67,17 +67,17 @@ def lista(page: ft.Page):
         scroll=ft.ScrollMode.AUTO,
         controls=[
             ft.AppBar(
-                leading=ft.IconButton(ft.Icons.HOME, icon_color=ft.colors.SURFACE, on_click=lambda e: page.go("/")),
+                leading=ft.IconButton(ft.Icons.HOME, icon_color=ft.Colors.SURFACE, on_click=lambda e: page.go("/")),
                 leading_width=50,
                 toolbar_height=70,
                 title=ft.Text("Lista de Colaboradores",size=32, color=ft.Colors.SURFACE),
                 center_title=False,
                 bgcolor=ft.Colors.ON_SURFACE,
                 actions=[
-                    ft.IconButton(ft.Icons.WB_SUNNY_OUTLINED, icon_color=ft.colors.SURFACE, on_click=theme_change),
+                    ft.IconButton(ft.Icons.WB_SUNNY_OUTLINED, icon_color=ft.Colors.SURFACE, on_click=theme_change),
                     ft.PopupMenuButton(
                         icon=ft.Icons.LIST,
-                        icon_color=ft.colors.SURFACE,
+                        icon_color=ft.Colors.SURFACE,
                         items=[
                             ft.PopupMenuItem('USER', on_click=lambda _: print("User")),
                             ft.PopupMenuItem(),
