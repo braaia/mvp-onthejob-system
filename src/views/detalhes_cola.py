@@ -3,6 +3,7 @@ import flet as ft
 from backend.functions.temas import theme_change
 from views.loadingpage.loading import loading_view
 from backend.functions.formatting import hover
+from backend.auth import get_me
 from datetime import datetime
 
 API_URL = "http://localhost:8000"
@@ -29,6 +30,21 @@ def view_detalhes(page: ft.Page, colab_id: int):
     )
 
     status = ft.Text(color=ft.colors.GREEN)
+
+    popup_items = [
+        ft.PopupMenuItem('USER', on_click=lambda _: print("User")),
+    ]
+
+    async def popmenu():
+        dados = await get_me()  # Tenta obter os dados do usuário autenticado
+
+        if dados and dados['cargo'] == 'admin':
+            popup_items.extend([
+                ft.PopupMenuItem(),
+                ft.PopupMenuItem('Formulário', on_click=lambda _: page.go("/")),
+                ft.PopupMenuItem('Admin', on_click=lambda _: page.go('/admin')),
+            ])
+        return popup_items
 
     async def carregar_detalhes():
         # Exibe a tela de loading
@@ -107,7 +123,7 @@ def view_detalhes(page: ft.Page, colab_id: int):
         scroll=ft.ScrollMode.AUTO,
         controls=[
             ft.AppBar(
-                leading=ft.IconButton(ft.Icons.HOME, icon_color=ft.colors.SURFACE, on_click=lambda e: page.go("/")),
+                leading=ft.IconButton(ft.Icons.HOME, icon_color=ft.colors.SURFACE),
                 leading_width=50,
                 toolbar_height=70,
                 title=ft.Text("Detalhes do Colaborador", size=32, color=ft.Colors.SURFACE),

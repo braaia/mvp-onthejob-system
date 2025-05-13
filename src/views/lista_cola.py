@@ -3,6 +3,7 @@ import httpx
 from views.loadingpage.loading import loading_view
 from backend.functions.temas import theme_change
 from backend.functions.formatting import hover
+from backend.auth import get_me
 
 API_URL = "http://localhost:8000"
 
@@ -16,6 +17,22 @@ def lista(page: ft.Page):
         alignment=ft.MainAxisAlignment.SPACE_EVENLY,
         width=page.window.width,
     )
+
+    popup_items = [
+        ft.PopupMenuItem('USER', on_click=lambda _: print("User")),
+    ]
+
+    async def popmenu():
+        dados = await get_me()  # Tenta obter os dados do usuário autenticado
+
+        if dados and dados['cargo'] == 'admin':
+            popup_items.extend([
+                ft.PopupMenuItem(),
+                ft.PopupMenuItem('Formulário', on_click=lambda _: page.go("/")),
+                ft.PopupMenuItem('Admin', on_click=lambda _: page.go('/admin')),
+            ])
+        return popup_items
+
 
     async def carregar_colaboradores():
         # Mostra a tela de loading
@@ -67,7 +84,7 @@ def lista(page: ft.Page):
         scroll=ft.ScrollMode.AUTO,
         controls=[
             ft.AppBar(
-                leading=ft.IconButton(ft.Icons.HOME, icon_color=ft.Colors.SURFACE, on_click=lambda e: page.go("/")),
+                leading=ft.IconButton(ft.Icons.HOME, icon_color=ft.Colors.SURFACE),
                 leading_width=50,
                 toolbar_height=70,
                 title=ft.Text("Lista de Colaboradores",size=32, color=ft.Colors.SURFACE),
@@ -78,11 +95,7 @@ def lista(page: ft.Page):
                     ft.PopupMenuButton(
                         icon=ft.Icons.LIST,
                         icon_color=ft.Colors.SURFACE,
-                        items=[
-                            ft.PopupMenuItem('USER', on_click=lambda _: print("User")),
-                            ft.PopupMenuItem(),
-                            ft.PopupMenuItem('Formulário', on_click=lambda _: page.go("/"))
-                        ]
+                        items=popup_items
                     ),
                 ]
             ),
@@ -94,5 +107,6 @@ def lista(page: ft.Page):
     )
 
     page.run_task(carregar_colaboradores)
+    page.run_task(popmenu)
 
     return layout
