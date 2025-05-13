@@ -113,8 +113,6 @@ def main(page: ft.Page):
             
             async with httpx.AsyncClient() as client:
                 r = await client.get(f"{API_URL}/me", headers={"Authorization": f"Bearer {get_token()}"})
-            if r.status_code == 200:
-                dados = await get_me()
                 if r.status_code == 200:
                     dados = await get_me()
                     if dados['cargo'] == 'admin':
@@ -271,16 +269,7 @@ def main(page: ft.Page):
 
         page.update()
 
-    # def view_pop(e):
-    #     if page.views:
-    #         popped_view = page.views.pop()
-    #         print(f"View removida: {popped_view}")
-    #     else:
-    #         print("Aviso: Nenhuma view para remover.")
-    #     page.update()
-
     page.on_route_change = route_change
-    # page.on_view_pop = view_pop
 
     page.go('/login')
 
