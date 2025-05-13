@@ -29,7 +29,7 @@ def view_detalhes(page: ft.Page, colab_id: int):
         width=400,
     )
 
-    status = ft.Text(color=ft.colors.GREEN)
+    status = ft.Text(color=ft.Colors.GREEN)
 
     popup_items = [
         ft.PopupMenuItem('USER', on_click=lambda _: print("User")),
@@ -123,17 +123,17 @@ def view_detalhes(page: ft.Page, colab_id: int):
         scroll=ft.ScrollMode.AUTO,
         controls=[
             ft.AppBar(
-                leading=ft.IconButton(ft.Icons.HOME, icon_color=ft.colors.SURFACE),
+                leading=ft.IconButton(ft.Icons.HOME, icon_color=ft.Colors.SURFACE),
                 leading_width=50,
                 toolbar_height=70,
                 title=ft.Text("Detalhes do Colaborador", size=32, color=ft.Colors.SURFACE),
                 center_title=False,
                 bgcolor=ft.Colors.ON_SURFACE,
                 actions=[
-                    ft.IconButton(ft.Icons.WB_SUNNY_OUTLINED, icon_color=ft.colors.SURFACE, on_click=theme_change),
+                    ft.IconButton(ft.Icons.WB_SUNNY_OUTLINED, icon_color=ft.Colors.SURFACE, on_click=theme_change),
                     ft.PopupMenuButton(
                         icon=ft.Icons.LIST,
-                        icon_color=ft.colors.SURFACE,
+                        icon_color=ft.Colors.SURFACE,
                         items=[
                             ft.PopupMenuItem('USER', on_click=lambda _: print("User")),
                             ft.PopupMenuItem(),

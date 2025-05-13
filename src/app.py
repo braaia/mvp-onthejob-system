@@ -115,10 +115,12 @@ def main(page: ft.Page):
                 r = await client.get(f"{API_URL}/me", headers={"Authorization": f"Bearer {get_token()}"})
             if r.status_code == 200:
                 dados = await get_me()
-                if dados['cargo'] == 'admin':
-                    page.go('/')
-                else:
-                    page.go('/lista_cola')
+                if r.status_code == 200:
+                    dados = await get_me()
+                    if dados['cargo'] == 'admin':
+                        page.go('/')
+                    else:
+                        page.go('/lista_cola')
 
             email = ''
             password = ''
@@ -248,7 +250,8 @@ def main(page: ft.Page):
         page.update()
 
     def route_change(e):
-        page.views.clear()
+        if not page.route.startswith("/colaborador/"):
+            page.views.clear()
 
         if page.route.startswith("/colaborador/"):  # Verifica se a rota é de um colaborador
             parts = page.route.split("/")
@@ -268,16 +271,17 @@ def main(page: ft.Page):
 
         page.update()
 
-    def view_pop(e):
-        if page.views:
-            page.views.pop()
-        else:
-            print("Aviso: Nenhuma view para remover.")
-        page.update()
+    # def view_pop(e):
+    #     if page.views:
+    #         popped_view = page.views.pop()
+    #         print(f"View removida: {popped_view}")
+    #     else:
+    #         print("Aviso: Nenhuma view para remover.")
+    #     page.update()
 
     page.on_route_change = route_change
-    page.on_view_pop = view_pop
+    # page.on_view_pop = view_pop
 
-    page.go('/')
+    page.go('/login')
 
 ft.app(target=main)
