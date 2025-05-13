@@ -7,8 +7,8 @@ def forgot_view(page: ft.Page, forgot):
         expand=True,
         border_color='transparent',
         hint_text='Email',
-        color=ft.colors.ON_BACKGROUND,
-        hint_style=ft.TextStyle(color=ft.colors.ON_BACKGROUND),
+        color=ft.Colors.PRIMARY,
+        hint_style=ft.TextStyle(color=ft.Colors.PRIMARY),
         content_padding=0
     )
 
@@ -18,11 +18,11 @@ def forgot_view(page: ft.Page, forgot):
         horizontal_alignment='center',
         controls=[
             ft.Container(
-                bgcolor=ft.colors.ON_BACKGROUND,
+                bgcolor=ft.Colors.PRIMARY,
                 width=400,
                 height=400,
                 border_radius=24,
-                shadow=ft.BoxShadow(blur_radius=18, color=ft.Colors.with_opacity(0.8, ft.colors.ON_BACKGROUND)),
+                shadow=ft.BoxShadow(blur_radius=18, color=ft.Colors.with_opacity(0.8, ft.Colors.PRIMARY)),
                 content=ft.Container(
                 expand=True,
                 alignment=ft.alignment.center,
@@ -34,7 +34,7 @@ def forgot_view(page: ft.Page, forgot):
                             ft.Container(
                                 ft.Text(
                                     "Redefinir senha",
-                                    color=ft.colors.SURFACE,
+                                    color=ft.Colors.SURFACE,
                                     size=38,
                                     weight='bold',
                                     font_family='MontSerrat'
@@ -43,7 +43,7 @@ def forgot_view(page: ft.Page, forgot):
                             ft.Container(
                                 width=250,
                                 height=50,
-                                bgcolor=ft.colors.SURFACE,
+                                bgcolor=ft.Colors.SURFACE,
                                 padding=10,
                                 alignment=ft.alignment.center_left,
                                 border_radius=8,
@@ -51,12 +51,12 @@ def forgot_view(page: ft.Page, forgot):
                                     ft.Container(
                                         content=ft.Icon(
                                             name=ft.Icons.EMAIL,
-                                            color=ft.colors.ON_BACKGROUND,
+                                            color=ft.Colors.PRIMARY,
                                         )
                                     ),
                                     ft.VerticalDivider(
                                         width=1,
-                                        color=ft.colors.ON_BACKGROUND
+                                        color=ft.Colors.PRIMARY
                                     ),
                                     email
                                 ])
@@ -72,8 +72,8 @@ def forgot_view(page: ft.Page, forgot):
                             ),
                             ft.IconButton(
                                 icon=ft.Icons.NAVIGATE_BEFORE,
-                                icon_color=ft.colors.ON_BACKGROUND,
-                                bgcolor=ft.colors.SURFACE,
+                                icon_color=ft.Colors.PRIMARY,
+                                bgcolor=ft.Colors.SURFACE,
                                 width=50,
                                 height=50,
                                 on_click=lambda _: page.go('/login')
