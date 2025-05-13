@@ -15,6 +15,7 @@ def view_detalhes(page: ft.Page, colab_id: int):
     cargo = ft.Text()
     depart = ft.Text()
     gestor = ft.Text()
+
     atividades_column = ft.Column()
     nova_atividade = ft.TextField(label="Nova atividade")
     comentario_gestor = ft.TextField(label="Comentário")
@@ -44,6 +45,10 @@ def view_detalhes(page: ft.Page, colab_id: int):
                 ft.PopupMenuItem('Formulário', on_click=lambda _: page.go("/")),
                 ft.PopupMenuItem('Admin', on_click=lambda _: page.go('/admin')),
             ])
+
+            page.controls.append(
+                
+            )
         return popup_items
 
     async def carregar_detalhes():
@@ -142,7 +147,7 @@ def view_detalhes(page: ft.Page, colab_id: int):
                     ),
                 ]
             ),
-            ft.Container(
+            page:=ft.Container(
                 content=ft.Column([
                     ft.TextButton("← Voltar à Lista", on_click=lambda _: page.go("/lista_cola")),
                     nome, cargo, depart, gestor,
@@ -162,5 +167,6 @@ def view_detalhes(page: ft.Page, colab_id: int):
 
     # Executa a tarefa de carregar os detalhes ao iniciar a página
     page.run_task(carregar_detalhes)
+    page.run_task(popmenu)
 
     return layout
