@@ -29,10 +29,17 @@ def get_token():
     return token
 
 async def get_me():
+    token = get_token()  # melhor garantir que está buscando corretamente
+
     if not token:
         return None
-    async with httpx.AsyncClient() as client:
-        r = await client.get(f"{API_URL}/me", headers={"Authorization": f"Bearer {token}"})
-    if r.status_code == 200:
-        return r.json()
+
+    try:
+        async with httpx.AsyncClient() as client:
+            r = await client.get(f"{API_URL}/me", headers={"Authorization": f"Bearer {token}"})
+            if r.status_code == 200:
+                return r.json()
+    except Exception as e:
+        print(f"Erro em get_me: {e}")
+
     return None

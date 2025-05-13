@@ -1,13 +1,11 @@
 import pyrebase
 import flet as ft
 import httpx
-from views.home import home_view
-from views.lista_cola import lista
-from views.detalhes_cola import view_detalhes
-from views.loadingpage.loading import loading_view
+from views import home, lista_cola, detalhes_cola, adminpage
 from views.loginpage import login, forgot, register
+from views.loadingpage.loading import loading_view
 from backend.functions.temas import tema_claro, tema_escuro
-from backend.auth import login_tokens, registrar_click
+from backend.auth import login_tokens, registrar_click, get_me, get_token
 
 firebaseConfig = {
     'apiKey': "AIzaSyDHhIIK5DtHzk3rBmnjl9wEe-YyAVw6Gh0",
@@ -57,7 +55,7 @@ def main(page: ft.Page):
     
     def home_route(page):
         global layout
-        layout = home_view(page)
+        layout = home.home_view(page)
         return layout
 
     routes = {
@@ -66,12 +64,12 @@ def main(page: ft.Page):
         "/register": register_route,
         "/forgot": forgot_route,
         "/loading": loading_view,
-        "/lista_cola": lista,
+        "/lista_cola": lista_cola.lista,
+        "/admin": adminpage.admin,
     }
 
     # Login function - AUTHENTICATION LOGIC CAN BE MODIFIED
     import re
-
     async def btn_login(e):
         global email_login, senha_login
         
@@ -112,7 +110,16 @@ def main(page: ft.Page):
                 show_close_icon=True,
                 close_icon_color='black',
             ))
-            page.go("/")
+            
+            async with httpx.AsyncClient() as client:
+                r = await client.get(f"{API_URL}/me", headers={"Authorization": f"Bearer {get_token()}"})
+            if r.status_code == 200:
+                dados = await get_me()
+                if dados['cargo'] == 'admin':
+                    page.go('/')
+                else:
+                    page.go('/lista_cola')
+
             email = ''
             password = ''
             page.update()
@@ -247,7 +254,7 @@ def main(page: ft.Page):
             parts = page.route.split("/")
             if len(parts) >= 3 and parts[1] == "colaborador" and parts[2].isdigit():
                 colab_id = parts[2]  # Obtém o ID do colaborador da URL
-                page.views.append(view_detalhes(page, colab_id))  # Carrega a tela de detalhes do colaborador
+                page.views.append(detalhes_cola.view_detalhes(page, colab_id))  # Carrega a tela de detalhes do colaborador
             else:
                 page.go("/") 
                 return
@@ -271,6 +278,6 @@ def main(page: ft.Page):
     page.on_route_change = route_change
     page.on_view_pop = view_pop
 
-    page.go('/login')
+    page.go('/')
 
 ft.app(target=main)

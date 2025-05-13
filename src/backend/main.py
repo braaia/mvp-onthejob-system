@@ -139,20 +139,6 @@ def login(form_data: OAuth2PasswordRequestForm = Depends()):
     token = models.create_token(email, user[3])
     return {"access_token": token, "token_type": "bearer"}
 
-@app.get("/painel_admin", tags=["Logins"])
-def painel_admin(authorization: str = Header(...)):
-    token = authorization.split(" ")[1]
-    dados = models.decode_token(token)
-    if dados["cargo"] != "admin":
-        raise HTTPException(status_code=403, detail="Acesso negado.")
-    return {"msg": f"Bem-vindo, {dados['sub']} (admin)"}
-
-@app.get("/painel_usuario", tags=["Logins"])
-def painel_usuario(authorization: str = Header(...)):
-    token = authorization.split(" ")[1]
-    dados = models.decode_token(token)
-    return {"msg": f"Bem-vindo, {dados['sub']} ({dados['cargo']})"}
-
 @app.get("/me", tags=["Logins"])
 def get_me(authorization: str = Header(...)):
     token = authorization.split(" ")[1]
