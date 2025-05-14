@@ -3,6 +3,15 @@ from backend.functions.formatting import hover
 
 def register_view(page: ft.Page, signup):
     
+    user = ft.TextField(
+        expand=True,
+        border_color='transparent',
+        hint_text='Usuário',
+        color=ft.Colors.PRIMARY,
+        hint_style=ft.TextStyle(color=ft.Colors.PRIMARY),
+        content_padding=0
+    )           
+
     email = ft.TextField(
         expand=True,
         border_color='transparent',
@@ -31,7 +40,7 @@ def register_view(page: ft.Page, signup):
             ft.Container(
                 bgcolor=ft.Colors.PRIMARY,
                 width=400,
-                height=400,
+                height=450,
                 border_radius=24,
                 shadow=ft.BoxShadow(blur_radius=18, color=ft.Colors.with_opacity(0.8, ft.Colors.PRIMARY)),
                 content=ft.Container(
@@ -50,6 +59,27 @@ def register_view(page: ft.Page, signup):
                                     weight='bold',
                                     font_family='MontSerrat'
                                 )
+                            ),
+                            ft.Container(
+                                width=250,
+                                height=50,
+                                bgcolor=ft.Colors.SURFACE,
+                                padding=10,
+                                alignment=ft.alignment.center_left,
+                                border_radius=8,
+                                content=ft.Row([
+                                    ft.Container(
+                                        content=ft.Icon(
+                                            name=ft.Icons.PERSON,
+                                            color=ft.Colors.PRIMARY,
+                                        )
+                                    ),
+                                    ft.VerticalDivider(
+                                        width=1,
+                                        color=ft.Colors.PRIMARY
+                                    ),
+                                    user
+                                ])
                             ),
                             ft.Container(
                                 width=250,
@@ -136,4 +166,4 @@ def register_view(page: ft.Page, signup):
         ]
     )
     
-    return email, senha, register_layout
+    return user, email, senha, register_layout

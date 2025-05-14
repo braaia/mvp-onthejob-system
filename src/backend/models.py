@@ -141,6 +141,34 @@ def listar_atividades_por_colaborador(colaborador_id: int):
     finally:
         conn.close()
 
+def get_atividade_por_id(colaborador_id: int, atividade_id: int):
+    """Retorna uma atividade específica de um colaborador."""
+    conn = get_conn()
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            """
+            SELECT id, colaborador_id, descricao, comentario_colaborador, comentario_gestor, status, data
+            FROM atividades
+            WHERE colaborador_id = ? AND id = ?
+            """,
+            (colaborador_id, atividade_id),
+        )
+        row = cursor.fetchone()
+        if row:
+            return AtividadeOut(
+                id=row[0],
+                colaborador_id=row[1],
+                descricao=row[2],
+                comentario_colaborador=row[3],
+                comentario_gestor=row[4],
+                status=row[5],
+                data=row[6]
+            )
+        return None
+    finally:
+        conn.close()
+
 def atualizar_colaborador(id: int, nome: str, cpf: str, data_adm: str, cargo: str, depart: str, nome_gestor: str, cargo_gestor: str):
     """Atualiza os dados de um colaborador pelo ID."""
     conn = get_conn()
@@ -168,14 +196,14 @@ def get_user(email: str):
     conn.close()
     return user
 
-def create_user(email, senha, cargo):
+def create_user(user, email, senha, cargo):
     if get_user(email):
         raise HTTPException(status_code=400, detail="Usuário já existe.")
     conn = sqlite3.connect("on_the_job.db")
     cursor = conn.cursor()
     senha_hash = bcrypt.hash(senha)
-    cursor.execute("INSERT INTO users (email, senha, cargo) VALUES (?, ?, ?)",
-                   (email, senha_hash, cargo))
+    cursor.execute("INSERT INTO users (user, email, senha, cargo) VALUES (?, ?, ?, ?)",
+                   (user, email, senha_hash, cargo))
     conn.commit()
     conn.close()
 
@@ -183,10 +211,11 @@ def authenticate_user(email, senha):
     user = get_user(email)
     if not user:
         return False
-    return bcrypt.verify(senha, user[2])
+    return bcrypt.verify(senha, user[3])
 
-def create_token(email, cargo):
+def create_token(user, email, cargo):
     payload = {
+        "user": user,
         "sub": email,
         "cargo": cargo,
         "exp": datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)

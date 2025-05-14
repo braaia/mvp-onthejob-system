@@ -1,5 +1,5 @@
 import flet as ft
-import sqlite3, httpx
+import sqlite3, httpx, asyncio
 from datetime import date
 from reportlab.pdfgen import canvas # PDF generation library
 from reportlab.lib.pagesizes import A4 # A4 page size for PDF
@@ -69,13 +69,30 @@ def home_view(page: ft.Page):
 
         async with httpx.AsyncClient() as client:
             r = await client.get(f"{API_URL}/me", headers={"Authorization": f"Bearer {get_token()}"})
-        if r.status_code == 200:
-            dados = await get_me()
-            status.value = f"Você é '{dados['cargo']}' com email '{dados['email']}'"
-        else:
-            status.value = f"Erro: {r.json()['detail']}"
+            if r.status_code == 200:
+                dados = r.json()
+                status.value = f"Você é '{dados['cargo']}' com email '{dados['email']}'"
+            else:
+                status.value = f"Erro: {r.json()['detail']}"
         page.update()
 
+    user_name = ft.Text("Carregando...")  # Placeholder
+
+    async def carregar_nome_usuario():
+        nome = "Desconhecido"
+        try:
+            async with httpx.AsyncClient() as client:
+                r = await client.get(f"{API_URL}/me", headers={"Authorization": f"Bearer {get_token()}"} )
+                if r.status_code == 200:
+                    dados = r.json()
+                    nome = dados.get("user", "Desconhecido")
+        except Exception as e:
+            nome = "Erro"
+        user_name.value = nome
+        page.update()
+
+    # Chame a função para carregar o nome ao abrir a home
+    asyncio.run(carregar_nome_usuario())
 
     # PAGE LAYOUT - CAN REORGANIZE COMPONENTS
     home_layout = ft.View(
@@ -97,7 +114,7 @@ def home_view(page: ft.Page):
                         icon=ft.Icons.LIST, 
                         icon_color=ft.Colors.SURFACE,
                         items=[
-                            ft.PopupMenuItem('USER', on_click=lambda _: print("User")),
+                            ft.PopupMenuItem(content=user_name, on_click=lambda _: print(user_name)),
                             ft.PopupMenuItem(),
                             ft.PopupMenuItem('Lista de Colaboradores', on_click=lambda _: page.go("/lista_cola")),
                             ft.PopupMenuItem('Admin', on_click=lambda _: page.go('/admin')),

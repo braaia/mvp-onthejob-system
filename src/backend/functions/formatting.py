@@ -2,12 +2,14 @@
 
 def hover(e):
     if e.data == "true":
-        e.control.scale = 1.06  # Scale up on hover
-        e.control.opacity = 0.8  # Slightly transparent on hover
+        e.control.scale = 1.06
+        e.control.opacity = 0.8
     else:
-        e.control.scale = 1.0  # Normal scale
-        e.control.opacity = 1.0  # Full opacity
-    e.control.update()
+        e.control.scale = 1.0
+        e.control.opacity = 1.0
+
+    if e.control.page:  # Garante que o controle foi adicionado à árvore da página
+        e.control.update()
 
 def formatar_cpf(e):
     cpf = e.control.value

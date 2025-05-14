@@ -1,5 +1,5 @@
 import flet as ft
-import httpx
+import httpx, asyncio
 from backend.functions import temas
 from backend.auth import get_token
 
@@ -29,11 +29,29 @@ def admin(page: ft.Page):
                 params={"target_email": alvo_email.value, "novo_cargo": cargo_alvo.value},
                 headers={"Authorization": f"Bearer {get_token()}"}
             )
-        if r.status_code == 200:
-            status.value = r.json()["msg"]
-        else:
-            status.value = f"Erro: {r.json()['detail']}"
+            if r.status_code == 200:
+                status.value = r.json()["msg"]
+            else:
+                status.value = f"Erro: {r.json()['detail']}"
+            page.update()
+    
+    user_name = ft.Text("Carregando...")  # Placeholder
+
+    async def carregar_nome_usuario():
+        nome = "Desconhecido"
+        try:
+            async with httpx.AsyncClient() as client:
+                r = await client.get(f"{API_URL}/me", headers={"Authorization": f"Bearer {get_token()}"} )
+                if r.status_code == 200:
+                    dados = r.json()
+                    nome = dados.get("user", "Desconhecido")
+        except Exception as e:
+            nome = "Erro"
+        user_name.value = nome
         page.update()
+
+    # Chame a função para carregar o nome ao abrir a home
+    asyncio.run(carregar_nome_usuario())
     
     layout = ft.View(
         "/admin",
@@ -42,7 +60,7 @@ def admin(page: ft.Page):
                 leading=ft.IconButton(ft.Icons.HOME, icon_color=ft.Colors.SURFACE, on_click=lambda e: page.go("/")),
                 leading_width=50,
                 toolbar_height=70,
-                title=ft.Text("Formulário ON THE JOB",size=32, color=ft.Colors.SURFACE),
+                title=ft.Text("ADMIN",size=32, color=ft.Colors.SURFACE),
                 center_title=False,
                 bgcolor=ft.Colors.ON_SURFACE,
                 actions=[
@@ -51,10 +69,10 @@ def admin(page: ft.Page):
                         icon=ft.Icons.LIST, 
                         icon_color=ft.Colors.SURFACE,
                         items=[
-                            ft.PopupMenuItem('USER', on_click=lambda _: print("User")),
+                            ft.PopupMenuItem(content=user_name, on_click=lambda _: print(user_name)),
                             ft.PopupMenuItem(),
-                            ft.PopupMenuItem('Formulário', on_click=lambda _: page.go('/')),
                             ft.PopupMenuItem('Lista de Colaboradores', on_click=lambda _: page.go("/lista_cola")),
+                            ft.PopupMenuItem('Formulário', on_click=lambda _: page.go('/')),
                         ]
                     ),
                 ],

@@ -31,7 +31,7 @@ def login_view(page: ft.Page, signin):
             ft.Container(
                 bgcolor=ft.Colors.PRIMARY,
                 width=400,
-                height=400,
+                height=450,
                 border_radius=24,
                 shadow=ft.BoxShadow(blur_radius=18, color=ft.Colors.with_opacity(0.8, ft.Colors.PRIMARY)),
                 content=ft.Container(

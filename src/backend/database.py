@@ -37,6 +37,7 @@ def init_db():
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user TEXT UNIQUE NOT NULL,
             email TEXT UNIQUE NOT NULL,
             senha TEXT NOT NULL,
             cargo TEXT NOT NULL     

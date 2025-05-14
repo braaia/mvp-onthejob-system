@@ -1,9 +1,9 @@
 import flet as ft
-import httpx
+import httpx, asyncio
 from views.loadingpage.loading import loading_view
 from backend.functions.temas import theme_change
 from backend.functions.formatting import hover
-from backend.auth import get_me
+from backend.auth import get_me, get_token
 
 API_URL = "http://localhost:8000"
 
@@ -17,9 +17,27 @@ def lista(page: ft.Page):
         alignment=ft.MainAxisAlignment.SPACE_EVENLY,
         width=page.window.width,
     )
+    
+    user_name = ft.Text("Carregando...")  # Placeholder
+
+    async def carregar_nome_usuario():
+        nome = "Desconhecido"
+        try:
+            async with httpx.AsyncClient() as client:
+                r = await client.get(f"{API_URL}/me", headers={"Authorization": f"Bearer {get_token()}"} )
+                if r.status_code == 200:
+                    dados = r.json()
+                    nome = dados.get("user", "Desconhecido")
+        except Exception as e:
+            nome = "Erro"
+        user_name.value = nome
+        page.update()
+
+    # Chame a função para carregar o nome ao abrir a home
+    asyncio.run(carregar_nome_usuario())
 
     popup_items = [
-        ft.PopupMenuItem('USER', on_click=lambda _: print("User")),
+        ft.PopupMenuItem(content=user_name, on_click=lambda _: print(user_name)),
     ]
 
     async def popmenu():

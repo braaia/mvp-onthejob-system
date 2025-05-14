@@ -38,7 +38,7 @@ def adicionar_atividade(id: int, atividade: AtividadeCreate):
     """Adiciona uma atividade a um colaborador pelo ID."""
     atividade.colaborador_id = id
     atividade_id = models.adicionar_atividade(atividade)
-    return {**atividade.dict(), "id": atividade_id}
+    return models.get_atividade_por_id(id, atividade_id)
 
 @app.get("/colaboradores", response_model=list[ColaOut], name="Listar Colaboradores", tags=["Colaboradores"])
 def listar_colaboradores():
@@ -57,6 +57,19 @@ def listar_atividades(id: int):
     if not atividades:
         raise HTTPException(status_code=404, detail="Nenhuma atividade encontrada para este colaborador")
     return atividades
+
+@app.get(
+    "/colaboradores/{colaborador_id}/atividades/{atividade_id}",
+    response_model=AtividadeOut,
+    name="Detalhar Atividade de um Colaborador",
+    tags=["Atividades"]
+)
+def detalhar_atividade(colaborador_id: int, atividade_id: int):
+    """Retorna os detalhes de uma atividade específica de um colaborador."""
+    atividade = models.get_atividade_por_id(colaborador_id, atividade_id)
+    if not atividade:
+        raise HTTPException(status_code=404, detail="Atividade não encontrada para este colaborador")
+    return atividade
 
 @app.put("/colaboradores/{id}", response_model=ColaOut, name="Editar Dados dos Colaboradores", tags=["Colaboradores"])
 def atualizar_colaborador(id: int, colaborador: ColaIn):
@@ -94,7 +107,7 @@ def remover_colaborador(id: int):
 
 
 @app.post("/register", tags=["Logins"])
-def register(email: str, senha: str):
+def register(user: str, email: str, senha: str):
     conn = sqlite3.connect("on_the_job.db")
     cursor = conn.cursor()
     cursor.execute("SELECT COUNT(*) FROM users")
@@ -103,7 +116,7 @@ def register(email: str, senha: str):
 
     # Primeiro usuário será admin
     cargo = "admin" if total == 0 else "colaborador"
-    models.create_user(email, senha, cargo)
+    models.create_user(user, email, senha, cargo)
     return {"msg": f"Usuário criado com sucesso! Cargo: {cargo}"}
 
 
@@ -135,8 +148,10 @@ def login(form_data: OAuth2PasswordRequestForm = Depends()):
     senha = form_data.password
     if not models.authenticate_user(email, senha):
         raise HTTPException(status_code=401, detail="Credenciais inválidas.")
-    user = models.get_user(email)
-    token = models.create_token(email, user[3])
+    user_db = models.get_user(email)
+    user_name = user_db[1]
+    cargo = models.get_user(email)
+    token = models.create_token(user_name, email, cargo[4])
     return {"access_token": token, "token_type": "bearer"}
 
 @app.get("/me", tags=["Logins"])
@@ -145,6 +160,7 @@ def get_me(authorization: str = Header(...)):
     dados = models.decode_token(token)
 
     return {
+        "user": dados["user"],
         "email": dados["sub"],
         "cargo": dados["cargo"]
     }

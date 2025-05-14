@@ -1,11 +1,13 @@
 import pyrebase
 import flet as ft
 import httpx
-from views import home, lista_cola, detalhes_cola, adminpage
+from views import home, lista_cola, adminpage
+from views.detalhes_atv import view_detalhe_atividade
+from views.detalhes_cola import view_detalhes
 from views.loginpage import login, forgot, register
 from views.loadingpage.loading import loading_view
 from backend.functions.temas import tema_claro, tema_escuro
-from backend.auth import login_tokens, registrar_click, get_me, get_token
+from backend.auth import login_tokens, registrar_click, get_token
 
 firebaseConfig = {
     'apiKey': "AIzaSyDHhIIK5DtHzk3rBmnjl9wEe-YyAVw6Gh0",
@@ -44,8 +46,8 @@ def main(page: ft.Page):
         return layout
 
     def register_route(page):
-        global email_register, senha_register  # Torna as variáveis acessíveis globalmente
-        email_register, senha_register, layout = register.register_view(page, btn_register)
+        global user_register, email_register, senha_register  # Torna as variáveis acessíveis globalmente
+        user_register, email_register, senha_register, layout = register.register_view(page, btn_register)
         return layout
     
     def forgot_route(page):
@@ -114,7 +116,7 @@ def main(page: ft.Page):
             async with httpx.AsyncClient() as client:
                 r = await client.get(f"{API_URL}/me", headers={"Authorization": f"Bearer {get_token()}"})
                 if r.status_code == 200:
-                    dados = await get_me()
+                    dados = r.json()
                     if dados['cargo'] == 'admin':
                         page.go('/')
                     else:
@@ -136,8 +138,9 @@ def main(page: ft.Page):
             page.update()
     
     async def btn_register(e):
-        global email_register, senha_register
+        global user_register, email_register, senha_register
         
+        user = user_register.value
         email = email_register.value
         password = senha_register.value
 
@@ -164,7 +167,7 @@ def main(page: ft.Page):
             return
 
         try:
-            await registrar_click(email, password)
+            await registrar_click(user, email, password)
 
             auth.create_user_with_email_and_password(email, password)
             # Success notification - MESSAGE AND STYLING CAN BE CHANGED
@@ -248,16 +251,19 @@ def main(page: ft.Page):
         page.update()
 
     def route_change(e):
-        if not page.route.startswith("/colaborador/"):
-            page.views.clear()
-
-        if page.route.startswith("/colaborador/"):  # Verifica se a rota é de um colaborador
+        if page.route.startswith("/colaborador/"):
             parts = page.route.split("/")
-            if len(parts) >= 3 and parts[1] == "colaborador" and parts[2].isdigit():
-                colab_id = parts[2]  # Obtém o ID do colaborador da URL
-                page.views.append(detalhes_cola.view_detalhes(page, colab_id))  # Carrega a tela de detalhes do colaborador
+            # Exemplo de rota: /colaborador/5/atividades/12
+            if len(parts) >= 5 and parts[1] == "colaborador" and parts[2].isdigit() and parts[4].isdigit():
+                colab_id = parts[2]
+                atividade_id = parts[4]
+                # Chame sua view de detalhes da atividade aqui, ex:
+                page.views.append(view_detalhe_atividade(page, colab_id, atividade_id))
+            elif len(parts) >= 3 and parts[1] == "colaborador" and parts[2].isdigit():
+                colab_id = parts[2]
+                page.views.append(view_detalhes(page, colab_id))
             else:
-                page.go("/") 
+                page.go("/")
                 return
 
         elif page.route not in routes:

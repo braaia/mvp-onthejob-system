@@ -1,9 +1,9 @@
-import httpx
+import httpx, asyncio
 import flet as ft
 from backend.functions.temas import theme_change
 from views.loadingpage.loading import loading_view
 from backend.functions.formatting import hover
-from backend.auth import get_me
+from backend.auth import get_me, get_token
 from datetime import datetime
 
 API_URL = "http://localhost:8000"
@@ -16,9 +16,11 @@ def view_detalhes(page: ft.Page, colab_id: int):
     depart = ft.Text()
     gestor = ft.Text()
 
-    atividades_column = ft.Column()
+    atividades_column = ft.Row(
+        spacing=10,
+        alignment=ft.MainAxisAlignment.START,
+    )
     nova_atividade = ft.TextField(label="Nova atividade")
-    comentario_gestor = ft.TextField(label="Comentário")
 
     status_atividade = ft.Dropdown(
         label="Status",
@@ -29,26 +31,50 @@ def view_detalhes(page: ft.Page, colab_id: int):
         ],
         width=400,
     )
-
     status = ft.Text(color=ft.Colors.GREEN)
 
-    popup_items = [
-        ft.PopupMenuItem('USER', on_click=lambda _: print("User")),
-    ]
+    # async def atividades():
+    #     async with httpx.AsyncClient() as client:
+    #         r = await client.get(f"{API_URL}/me", headers={"Authorization": f"Bearer {get_token()}"} )
+    #         ra = await client.get(f"{API_URL}/colaboradores/{colab_id}")
 
+    #         if r.status_code == 200:
+    #             dados = r.json()
+    #             dados_atv = ra.json()
+
+    
+    user_name = ft.Text("Carregando...")  # Placeholder
+
+    async def carregar_nome_usuario():
+        nome = "Desconhecido"
+        try:
+            async with httpx.AsyncClient() as client:
+                r = await client.get(f"{API_URL}/me", headers={"Authorization": f"Bearer {get_token()}"} )
+                if r.status_code == 200:
+                    dados = r.json()
+                    nome = dados.get("user", "Desconhecido")
+        except Exception as e:
+            nome = "Erro"
+        user_name.value = nome
+        page.update()
+
+    # Chame a função para carregar o nome ao abrir a home
+    asyncio.run(carregar_nome_usuario())
+
+    popup_items = [
+        ft.PopupMenuItem(content=user_name, on_click=lambda _: print(user_name)),
+        ft.PopupMenuItem(),
+        ft.PopupMenuItem('Lista de Colaboradores', on_click=lambda _: page.go("/lista_cola")),
+    ]
+    
     async def popmenu():
         dados = await get_me()  # Tenta obter os dados do usuário autenticado
 
         if dados and dados['cargo'] == 'admin':
             popup_items.extend([
-                ft.PopupMenuItem(),
                 ft.PopupMenuItem('Formulário', on_click=lambda _: page.go("/")),
                 ft.PopupMenuItem('Admin', on_click=lambda _: page.go('/admin')),
             ])
-
-            page.controls.append(
-                
-            )
         return popup_items
 
     async def carregar_detalhes():
@@ -69,7 +95,27 @@ def view_detalhes(page: ft.Page, colab_id: int):
                     gestor.value = f"Gestor: {colab[0]['nome_gestor']}"
                     atividades_column.controls.clear()
                     for atv in colab[0]["atividades"]:
-                        atividades_column.controls.append(ft.Text(f'- {atv['descricao']}, "Status = {atv['status']}" | ({atv['data'][:10]})'))
+                        atividades_column.controls.append(
+                            ft.Container(
+                                content=ft.Column(
+                                    alignment='center',
+                                    horizontal_alignment='center',
+                                    controls=[
+                                        ft.Text(f"Atividade: {atv['descricao']}"),
+                                        ft.Text(f"Status = {atv['status']}"),
+                                        ft.Text(f"Data = {atv['data'][:10]}"),
+                                        ft.ElevatedButton(
+                                            "Ver Detalhes", color=ft.Colors.SURFACE, bgcolor=ft.Colors.ON_SURFACE, on_hover=hover,
+                                            on_click=lambda e, cid=colab[0]['id'], aid=atv['id']: page.go(f"/colaborador/{cid}/atividades/{aid}")
+                                        )
+                                    ]),
+                                width=615,
+                                height=130,
+                                border=ft.border.all(1),
+                                border_radius=10,
+                            )
+                            # ft.Text(f'- {atv['descricao']}, "Status = {atv['status']}" | ({atv['data'][:10]})')
+                        )
                 else:
                     nome.value = "Colaborador não encontrado."
         except Exception as e:
@@ -101,7 +147,7 @@ def view_detalhes(page: ft.Page, colab_id: int):
                 "colaborador_id": colab_id,
                 "descricao": nova_atividade.value.strip(),
                 "comentario_colaborador": None,
-                "comentario_gestor": comentario_gestor.value.strip() if comentario_gestor.value else None,
+                "comentario_gestor": None,
                 "status": status_atividade.value.strip(),
                 "data": datetime.now().isoformat(),
             }
@@ -112,7 +158,6 @@ def view_detalhes(page: ft.Page, colab_id: int):
                 response = await client.post(f"{API_URL}/colaboradores/{colab_id}/atividades", json=payload)
                 if response.status_code == 200:
                     nova_atividade.value = ""
-                    comentario_gestor.value = ""
                     status_atividade.value = ""
                     await carregar_detalhes()
                 else:
@@ -139,27 +184,25 @@ def view_detalhes(page: ft.Page, colab_id: int):
                     ft.PopupMenuButton(
                         icon=ft.Icons.LIST,
                         icon_color=ft.Colors.SURFACE,
-                        items=[
-                            ft.PopupMenuItem('USER', on_click=lambda _: print("User")),
-                            ft.PopupMenuItem(),
-                            ft.PopupMenuItem('Formulário', on_click=lambda _: page.go("/"))
-                        ]
+                        items=popup_items,
                     ),
                 ]
             ),
-            page:=ft.Container(
+            ft.Container(
                 content=ft.Column([
                     ft.TextButton("← Voltar à Lista", on_click=lambda _: page.go("/lista_cola")),
                     nome, cargo, depart, gestor,
                     ft.Divider(),
                     ft.Text("Atividades:", weight="bold"),
-                    atividades_column,
+                ]),
+            ),
+            ft.Container(
+                content=atividades_column,
+            ),
+            ft.Container(
+                content=ft.Column([
                     nova_atividade,
-                    comentario_gestor,
-                    status_atividade,
-                    ft.ElevatedButton("Adicionar Atividade", on_click=adicionar_atividade, on_hover=hover),
-                    ft.Divider(),
-                    ft.ElevatedButton("Gerar PDF", on_click=lambda _: print("Gerar PDF"), on_hover=hover),
+                    ft.ElevatedButton("Adicionar Atividade", on_click=adicionar_atividade, on_hover=hover, bgcolor=ft.Colors.ON_SURFACE, color=ft.Colors.SURFACE),
                 ])
             )
         ]
@@ -167,6 +210,7 @@ def view_detalhes(page: ft.Page, colab_id: int):
 
     # Executa a tarefa de carregar os detalhes ao iniciar a página
     page.run_task(carregar_detalhes)
+    # page.run_task(atividades)
     page.run_task(popmenu)
 
     return layout
