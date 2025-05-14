@@ -7,7 +7,7 @@ class AtividadeCreate(BaseModel):
     descricao: str
     comentario_colaborador: Optional[str] = None
     comentario_gestor: Optional[str] = None
-    status: str
+    status: Optional[str]
     data: Optional[datetime]
 
 class AtividadeOut(AtividadeCreate):

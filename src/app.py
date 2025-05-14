@@ -236,20 +236,6 @@ def main(page: ft.Page):
             email = ''
             page.update()
 
-    async def acessar_admin(e):
-        async with httpx.AsyncClient() as client:
-            r = await client.get(f"{API_URL}/painel_admin", headers={"Authorization": f"Bearer {token}"})
-        status = r.json().get("msg", "Erro.")
-        print(status)
-        page.update()
-
-    async def acessar_usuario(e):
-        async with httpx.AsyncClient() as client:
-            r = await client.get(f"{API_URL}/painel_usuario", headers={"Authorization": f"Bearer {token}"})
-        status = r.json().get("msg", "Erro.")
-        print(status)
-        page.update()
-
     def route_change(e):
         if page.route.startswith("/colaborador/"):
             parts = page.route.split("/")

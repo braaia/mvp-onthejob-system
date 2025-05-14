@@ -18,9 +18,12 @@ def view_detalhes(page: ft.Page, colab_id: int):
 
     atividades_column = ft.Row(
         spacing=10,
+        scroll=ft.ScrollMode.AUTO,
+        expand=True,
+        height=175,
         alignment=ft.MainAxisAlignment.START,
     )
-    nova_atividade = ft.TextField(label="Nova atividade")
+    nova_atividade = ft.TextField(label="Nova atividade", multiline=True)
 
     status_atividade = ft.Dropdown(
         label="Status",
@@ -31,7 +34,7 @@ def view_detalhes(page: ft.Page, colab_id: int):
         ],
         width=400,
     )
-    status = ft.Text(color=ft.Colors.GREEN)
+    status = ft.Text(color=ft.Colors.RED)
 
     # async def atividades():
     #     async with httpx.AsyncClient() as client:
@@ -98,7 +101,8 @@ def view_detalhes(page: ft.Page, colab_id: int):
                         atividades_column.controls.append(
                             ft.Container(
                                 content=ft.Column(
-                                    alignment='center',
+                                    scroll=ft.ScrollMode.AUTO,
+                                    alignment=ft.MainAxisAlignment.CENTER,
                                     horizontal_alignment='center',
                                     controls=[
                                         ft.Text(f"Atividade: {atv['descricao']}"),
@@ -109,12 +113,13 @@ def view_detalhes(page: ft.Page, colab_id: int):
                                             on_click=lambda e, cid=colab[0]['id'], aid=atv['id']: page.go(f"/colaborador/{cid}/atividades/{aid}")
                                         )
                                     ]),
-                                width=615,
-                                height=130,
+                                padding=ft.padding.only(top=7, left=10, right=10, bottom=7),
+                                width=307,
+                                height=140,
                                 border=ft.border.all(1),
                                 border_radius=10,
+                                bgcolor=ft.Colors.TRANSPARENT,
                             )
-                            # ft.Text(f'- {atv['descricao']}, "Status = {atv['status']}" | ({atv['data'][:10]})')
                         )
                 else:
                     nome.value = "Colaborador não encontrado."
@@ -151,8 +156,6 @@ def view_detalhes(page: ft.Page, colab_id: int):
                 "status": status_atividade.value.strip(),
                 "data": datetime.now().isoformat(),
             }
-
-            print(payload)  # Para depuração
 
             async with httpx.AsyncClient() as client:
                 response = await client.post(f"{API_URL}/colaboradores/{colab_id}/atividades", json=payload)
@@ -193,7 +196,7 @@ def view_detalhes(page: ft.Page, colab_id: int):
                     ft.TextButton("← Voltar à Lista", on_click=lambda _: page.go("/lista_cola")),
                     nome, cargo, depart, gestor,
                     ft.Divider(),
-                    ft.Text("Atividades:", weight="bold"),
+                    ft.Text("Atividades:", weight="bold", size=24),
                 ]),
             ),
             ft.Container(
@@ -202,6 +205,14 @@ def view_detalhes(page: ft.Page, colab_id: int):
             ft.Container(
                 content=ft.Column([
                     nova_atividade,
+                    status,
+                ]),
+                padding=ft.padding.only(top=5),
+            ),
+            ft.Container(
+                padding=ft.padding.only(bottom=25),
+                content=ft.Row([
+                    status_atividade,
                     ft.ElevatedButton("Adicionar Atividade", on_click=adicionar_atividade, on_hover=hover, bgcolor=ft.Colors.ON_SURFACE, color=ft.Colors.SURFACE),
                 ])
             )
