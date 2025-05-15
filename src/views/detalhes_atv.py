@@ -39,7 +39,7 @@ def view_detalhe_atividade(page: ft.Page, cid, atvid):
                 leading=ft.IconButton(ft.Icons.HOME, icon_color=ft.Colors.SURFACE),
                 leading_width=50,
                 toolbar_height=70,
-                title=ft.Text("Detalhes do Colaborador", size=32, color=ft.Colors.SURFACE),
+                title=ft.Text(f"Detalhes da Atividade do Colaborador {cid}", size=32, color=ft.Colors.SURFACE),
                 center_title=False,
                 bgcolor=ft.Colors.ON_SURFACE,
                 actions=[

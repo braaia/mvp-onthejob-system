@@ -152,7 +152,6 @@ def view_detalhes(page: ft.Page, colab_id: int):
                 "colaborador_id": colab_id,
                 "descricao": nova_atividade.value.strip(),
                 "comentario_colaborador": None,
-                "comentario_gestor": None,
                 "status": status_atividade.value.strip(),
                 "data": datetime.now().isoformat(),
             }

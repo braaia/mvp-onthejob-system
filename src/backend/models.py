@@ -102,10 +102,10 @@ def adicionar_atividade(atividade: AtividadeCreate):
     try:
         cursor.execute(
             """
-            INSERT INTO atividades (colaborador_id, descricao, comentario_colaborador, comentario_gestor, status, data)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO atividades (colaborador_id, descricao, comentario_colaborador, status, data)
+            VALUES (?, ?, ?, ?, ?)
             """,
-            (atividade.colaborador_id, atividade.descricao, atividade.comentario_colaborador, atividade.comentario_gestor, atividade.status, atividade.data),
+            (atividade.colaborador_id, atividade.descricao, atividade.comentario_colaborador, atividade.status, atividade.data),
         )
         conn.commit()
         return cursor.lastrowid
@@ -119,7 +119,7 @@ def listar_atividades_por_colaborador(colaborador_id: int):
     try:
         cursor.execute(
             """
-            SELECT id, colaborador_id, descricao, comentario_colaborador, comentario_gestor, status, data
+            SELECT id, colaborador_id, descricao, comentario_colaborador, status, data
             FROM atividades
             WHERE colaborador_id = ?
             """,
@@ -132,12 +132,29 @@ def listar_atividades_por_colaborador(colaborador_id: int):
                 colaborador_id=row[1],
                 descricao=row[2],
                 comentario_colaborador=row[3],
-                comentario_gestor=row[4],
-                status=row[5],
-                data=row[6]
+                status=row[4],
+                data=row[5]
             )
             for row in rows
         ]
+    finally:
+        conn.close()
+
+def atualizar_atividade(id: int, colaborador_id: int, descricao: str, comentario_colaborador: str, status: str):
+    """Atualiza os dados de um colaborador pelo ID."""
+    conn = get_conn()
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            """
+            UPDATE atividades
+            SET descricao = ?, comentario_colaborador = ?, status = ?
+            WHERE id = ? AND colaborador_id = ?
+            """,
+            (descricao, comentario_colaborador, status, id, colaborador_id)
+        )
+        conn.commit()
+        return cursor.rowcount > 0
     finally:
         conn.close()
 
@@ -148,7 +165,7 @@ def get_atividade_por_id(colaborador_id: int, atividade_id: int):
     try:
         cursor.execute(
             """
-            SELECT id, colaborador_id, descricao, comentario_colaborador, comentario_gestor, status, data
+            SELECT id, colaborador_id, descricao, comentario_colaborador, status, data
             FROM atividades
             WHERE colaborador_id = ? AND id = ?
             """,
@@ -161,9 +178,8 @@ def get_atividade_por_id(colaborador_id: int, atividade_id: int):
                 colaborador_id=row[1],
                 descricao=row[2],
                 comentario_colaborador=row[3],
-                comentario_gestor=row[4],
-                status=row[5],
-                data=row[6]
+                status=row[4],
+                data=row[5]
             )
         return None
     finally:
