@@ -243,3 +243,17 @@ def decode_token(token: str):
         return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
     except JWTError:
         raise HTTPException(status_code=401, detail="Token inválido ou expirado")
+    
+def deletar_colaborador(id: int):
+    conn = get_conn()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM admissao WHERE id = ?", (id,))
+    conn.commit()
+    conn.close()
+
+def deletar_atividade(cid: int, atvid: int):
+    conn = get_conn()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM atividades WHERE id = ? AND colaborador_id = ?", (atvid, cid,))
+    conn.commit()
+    conn.close()

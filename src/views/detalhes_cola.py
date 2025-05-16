@@ -178,7 +178,7 @@ def view_detalhes(page: ft.Page, colab_id: int):
                 leading=ft.IconButton(ft.Icons.HOME, icon_color=ft.Colors.SURFACE),
                 leading_width=50,
                 toolbar_height=70,
-                title=ft.Text("Detalhes do Colaborador", size=32, color=ft.Colors.SURFACE),
+                title=ft.Text(f"Detalhes do Colaborador {colab_id}", size=32, color=ft.Colors.SURFACE),
                 center_title=False,
                 bgcolor=ft.Colors.ON_SURFACE,
                 actions=[

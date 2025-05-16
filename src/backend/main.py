@@ -114,6 +114,14 @@ def remover_colaborador(id: int):
         raise HTTPException(status_code=404, detail="Colaborador não encontrado")
     return {"detail": "Colaborador removido com sucesso"}
 
+@app.delete("/colaboradores/{cid}/atividades/{atvid}", name="Deletar Atividade", tags=["Atividades"])
+def remover_colaborador(cid: int, atvid: int):
+    """Remove uma atividade pelo ID."""
+    sucesso = models.deletar_atividade(cid, atvid)
+    if not sucesso:
+        raise HTTPException(status_code=404, detail="Atividade não encontrada")
+    return {"detail": "Atividade removida com sucesso"}
+
 
 @app.post("/register", tags=["Logins"])
 def register(user: str, email: str, senha: str):
