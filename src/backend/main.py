@@ -79,15 +79,10 @@ def listar_atividades(id: int):
         raise HTTPException(status_code=404, detail="Nenhuma atividade encontrada para este colaborador")
     return atividades
 
-@app.get(
-    "/colaboradores/{colaborador_id}/atividades/{atividade_id}",
-    response_model=AtividadeOut,
-    name="Detalhar Atividade de um Colaborador",
-    tags=["Atividades"]
-)
-def detalhar_atividade(colaborador_id: int, atividade_id: int):
+@app.get("/colaboradores/{cid}/atividades/{atvid}", response_model=AtividadeOut, name="Detalhar Atividade de um Colaborador", tags=["Atividades"])
+def detalhar_atividade(cid: int, atvid: int):
     """Retorna os detalhes de uma atividade específica de um colaborador."""
-    atividade = models.get_atividade_por_id(colaborador_id, atividade_id)
+    atividade = models.get_atividade_por_id(cid, atvid)
     if not atividade:
         raise HTTPException(status_code=404, detail="Atividade não encontrada para este colaborador")
     return atividade
