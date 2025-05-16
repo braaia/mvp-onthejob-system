@@ -40,26 +40,19 @@ def adicionar_atividade(id: int, atividade: AtividadeCreate):
     atividade_id = models.adicionar_atividade(atividade)
     return models.get_atividade_por_id(id, atividade_id)
 
-@app.put("/colaboradores/{cid}/atividades/{atvid}", response_model=ColaOut, name="Editar Dados da Atividade do Colaborador", tags=["Atividades"])
+@app.put("/colaboradores/{cid}/atividades/{atvid}", response_model=AtividadeOut, name="Editar Dados da Atividade do Colaborador", tags=["Atividades"])
 def atualizar_atividade(cid: int, atvid: int, atividade: AtividadeCreate):
-    """Atualiza os dados de um colaborador pelo ID."""
+    """Atualiza os dados da atividade de um colaborador pelo ID."""
     success = models.atualizar_atividade(
-        cid,
         atvid,
+        cid,
         atividade.descricao,
         atividade.comentario_colaborador,
         atividade.status
     )
     if not success:
         raise HTTPException(status_code=404, detail="Atividade ou Colaborador não encontrado")
-    return AtividadeOut(
-        id=atvid,
-        colaborador_id=cid,
-        descricao=atividade.descricao,
-        comentario_colaborador=atividade.comentario_colaborador,
-        status=atividade.status,
-        data=atividade.data
-    )
+    return models.get_atividade_por_id(cid, atvid)
 
 @app.get("/colaboradores", response_model=list[ColaOut], name="Listar Colaboradores", tags=["Colaboradores"])
 def listar_colaboradores():
