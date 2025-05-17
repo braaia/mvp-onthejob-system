@@ -2,6 +2,7 @@ from backend.schemas import ColaIn, ColaOut, AtividadeCreate, AtividadeOut
 from backend import models, database
 from fastapi import FastAPI, HTTPException, Depends, Header
 from fastapi.security import OAuth2PasswordRequestForm
+from typing import List
 import sqlite3
 
 app = FastAPI(
@@ -20,7 +21,7 @@ def startup():
     """Inicializa o banco de dados na inicialização do aplicativo."""
     database.init_db()
 
-@app.post("/colaboradores", response_model=ColaOut, name="Criar Colaborador", tags=["Colaboradores"])
+@app.post("/colaboradores", response_model=List[ColaOut], name="Criar Colaborador", tags=["Colaboradores"])
 def criar_colaborador(colaborador: ColaIn):
     """Cria um novo colaborador."""
     return models.criar_colaborador(
@@ -33,14 +34,14 @@ def criar_colaborador(colaborador: ColaIn):
         colaborador.cargo_gestor,
     )
 
-@app.post("/colaboradores/{id}/atividades", response_model=AtividadeOut, name="Adicionar Atividade a um Colaborador", tags=["Atividades"])
+@app.post("/colaboradores/{id}/atividades", response_model=List[AtividadeOut], name="Adicionar Atividade a um Colaborador", tags=["Atividades"])
 def adicionar_atividade(id: int, atividade: AtividadeCreate):
     """Adiciona uma atividade a um colaborador pelo ID."""
     atividade.colaborador_id = id
     atividade_id = models.adicionar_atividade(atividade)
     return models.get_atividade_por_id(id, atividade_id)
 
-@app.put("/colaboradores/{cid}/atividades/{atvid}", response_model=AtividadeOut, name="Editar Dados da Atividade do Colaborador", tags=["Atividades"])
+@app.put("/colaboradores/{cid}/atividades/{atvid}", response_model=List[AtividadeOut], name="Editar Dados da Atividade do Colaborador", tags=["Atividades"])
 def atualizar_atividade(cid: int, atvid: int, atividade: AtividadeCreate):
     """Atualiza os dados da atividade de um colaborador pelo ID."""
     success = models.atualizar_atividade(
@@ -54,17 +55,17 @@ def atualizar_atividade(cid: int, atvid: int, atividade: AtividadeCreate):
         raise HTTPException(status_code=404, detail="Atividade ou Colaborador não encontrado")
     return models.get_atividade_por_id(cid, atvid)
 
-@app.get("/colaboradores", response_model=list[ColaOut], name="Listar Colaboradores", tags=["Colaboradores"])
+@app.get("/colaboradores", response_model=List[ColaOut], name="Listar Colaboradores", tags=["Colaboradores"])
 def listar_colaboradores():
     """Lista todos os colaboradores cadastrados."""
     return models.listar_colaborador()
 
-@app.get("/colaboradores/{id}", response_model=list[ColaOut], name="Listar Colaborador Individual", tags=["Colaboradores"])
+@app.get("/colaboradores/{id}", response_model=List[ColaOut], name="Listar Colaborador Individual", tags=["Colaboradores"])
 def listar_colaboradores(id: int):
     """Lista todos os colaboradores cadastrados."""
     return models.listar_colaborador_individual(id)
 
-@app.get("/colaboradores/{id}/atividades", response_model=list[AtividadeOut], name="Listar Atividades de um Colaborador Individual", tags=["Atividades"])
+@app.get("/colaboradores/{id}/atividades", response_model=List[AtividadeOut], name="Listar Atividades de um Colaborador Individual", tags=["Atividades"])
 def listar_atividades(id: int):
     """Lista todas as atividades de um colaborador pelo ID."""
     atividades = models.listar_atividades_por_colaborador(id)
@@ -72,7 +73,7 @@ def listar_atividades(id: int):
         raise HTTPException(status_code=404, detail="Nenhuma atividade encontrada para este colaborador")
     return atividades
 
-@app.get("/colaboradores/{cid}/atividades/{atvid}", response_model=AtividadeOut, name="Detalhar Atividade de um Colaborador", tags=["Atividades"])
+@app.get("/colaboradores/{cid}/atividades/{atvid}", response_model=List[AtividadeOut], name="Detalhar Atividade de um Colaborador", tags=["Atividades"])
 def detalhar_atividade(cid: int, atvid: int):
     """Retorna os detalhes de uma atividade específica de um colaborador."""
     atividade = models.get_atividade_por_id(cid, atvid)
@@ -80,7 +81,7 @@ def detalhar_atividade(cid: int, atvid: int):
         raise HTTPException(status_code=404, detail="Atividade não encontrada para este colaborador")
     return atividade
 
-@app.put("/colaboradores/{id}", response_model=ColaOut, name="Editar Dados dos Colaboradores", tags=["Colaboradores"])
+@app.put("/colaboradores/{id}", response_model=List[ColaOut], name="Editar Dados dos Colaboradores", tags=["Colaboradores"])
 def atualizar_colaborador(id: int, colaborador: ColaIn):
     """Atualiza os dados de um colaborador pelo ID."""
     sucesso = models.atualizar_colaborador(
