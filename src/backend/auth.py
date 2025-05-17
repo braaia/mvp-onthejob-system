@@ -1,6 +1,5 @@
 import httpx
-
-API_URL = "http://localhost:8000"
+from backend.api import API_URL
 
 # Aqui você pode armazenar o token em memória
 token = None

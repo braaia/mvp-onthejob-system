@@ -1,9 +1,8 @@
 import flet as ft
 import httpx, asyncio
+from backend.api import API_URL
 from backend.functions import temas
 from backend.auth import get_token
-
-API_URL = "http://localhost:8000"
 
 def admin(page: ft.Page):
     alvo_email = ft.TextField(label="Email do usuário", border_color=ft.Colors.ON_SURFACE)

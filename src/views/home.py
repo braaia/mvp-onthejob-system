@@ -1,13 +1,11 @@
 import flet as ft
-import sqlite3, httpx, asyncio
-from datetime import date
+import httpx, asyncio
+from backend.api import API_URL
 from reportlab.pdfgen import canvas # PDF generation library
 from reportlab.lib.pagesizes import A4 # A4 page size for PDF
 from backend.functions import formatting, temas
 from backend.functions.formatting import hover
-from backend.auth import get_me, get_token
-
-API_URL = "http://localhost:8000"
+from backend.auth import get_token
 
 def home_view(page: ft.Page):
 

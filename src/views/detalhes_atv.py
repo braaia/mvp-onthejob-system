@@ -1,9 +1,8 @@
 import flet as ft
 import httpx, asyncio
+from backend.api import API_URL
 from backend.auth import get_me, get_token
 from backend.functions.temas import theme_change
-
-API_URL = "http://localhost:8000"
 
 def view_detalhe_atividade(page: ft.Page, cid, atvid):
 

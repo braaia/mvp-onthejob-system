@@ -1,6 +1,7 @@
 import pyrebase
 import flet as ft
 import httpx
+from backend.api import API_URL
 from views import home, lista_cola, adminpage
 from views.detalhes_atv import view_detalhe_atividade
 from views.detalhes_cola import view_detalhes
@@ -22,8 +23,6 @@ firebaseConfig = {
 
 firebase = pyrebase.initialize_app(firebaseConfig)
 auth = firebase.auth()
-
-API_URL = "http://localhost:8000"
 
 def main(page: ft.Page):
 
