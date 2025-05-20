@@ -21,7 +21,7 @@ def startup():
     """Inicializa o banco de dados na inicialização do aplicativo."""
     database.init_db()
 
-@app.post("/colaboradores", response_model=List[ColaOut], name="Criar Colaborador", tags=["Colaboradores"])
+@app.post("/colaboradores", response_model=ColaOut, name="Criar Colaborador", tags=["Colaboradores"])
 def criar_colaborador(colaborador: ColaIn):
     """Cria um novo colaborador."""
     return models.criar_colaborador(
@@ -34,7 +34,7 @@ def criar_colaborador(colaborador: ColaIn):
         colaborador.cargo_gestor,
     )
 
-@app.post("/colaboradores/{id}/atividades", response_model=List[AtividadeOut], name="Adicionar Atividade a um Colaborador", tags=["Atividades"])
+@app.post("/colaboradores/{id}/atividades", response_model=AtividadeOut, name="Adicionar Atividade a um Colaborador", tags=["Atividades"])
 def adicionar_atividade(id: int, atividade: AtividadeCreate):
     """Adiciona uma atividade a um colaborador pelo ID."""
     atividade.colaborador_id = id
