@@ -160,3 +160,4 @@ cython_debug/
 #.idea/
 src/on_the_job.db
 src/serviceAccount.json
+on_the_job.db
