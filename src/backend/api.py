@@ -1,1 +1,1 @@
-API_URL = "https://mvp-onthejob-system.onrender.com"
+API_URL = "http://localhost:8000"

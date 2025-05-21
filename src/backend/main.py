@@ -3,7 +3,7 @@ from src.backend import models, database
 from fastapi import FastAPI, HTTPException, Depends, Header
 from fastapi.security import OAuth2PasswordRequestForm
 from typing import List
-from src.backend.database import get_conn
+import sqlite3
 
 app = FastAPI(
     title="API de Colaboradores",
@@ -15,6 +15,11 @@ app = FastAPI(
         {"name": "Logins", "description": "Gerenciamento de login dos colaboradores"},
     ]
 )
+
+@app.on_event("startup")
+def startup():
+    """Inicializa o banco de dados na inicialização do aplicativo."""
+    database.init_db()
 
 @app.post("/colaboradores", response_model=ColaOut, name="Criar Colaborador", tags=["Colaboradores"])
 def criar_colaborador(colaborador: ColaIn):
@@ -121,12 +126,13 @@ def remover_colaborador(cid: int, atvid: int):
 
 @app.post("/register", tags=["Logins"])
 def register(user: str, email: str, senha: str):
-    conn = get_conn()
+    conn = sqlite3.connect("on_the_job.db")
     cursor = conn.cursor()
     cursor.execute("SELECT COUNT(*) FROM users")
     total = cursor.fetchone()[0]
     conn.close()
 
+    # Primeiro usuário será admin
     cargo = "admin" if total == 0 else "colaborador"
     models.create_user(user, email, senha, cargo)
     return {"msg": f"Usuário criado com sucesso! Cargo: {cargo}"}
@@ -146,7 +152,7 @@ def set_cargo(target_email: str, novo_cargo: str, authorization: str = Header(..
     if not models.get_user(target_email):
         raise HTTPException(status_code=404, detail="Usuário não encontrado.")
 
-    conn = get_conn()
+    conn = sqlite3.connect("on_the_job.db")
     cursor = conn.cursor()
     cursor.execute("UPDATE users SET cargo = ? WHERE email = ?", (novo_cargo, target_email))
     conn.commit()

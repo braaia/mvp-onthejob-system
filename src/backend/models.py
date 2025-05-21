@@ -1,14 +1,16 @@
-import psycopg2
+import sqlite3
 from src.backend.schemas import ColaOut, AtividadeCreate, AtividadeOut
 from fastapi import HTTPException
 from jose import jwt, JWTError
 from passlib.hash import bcrypt
 from datetime import datetime, timedelta
-from src.backend.database import get_conn
 
 SECRET_KEY = "segredo-supersecreto"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+def get_conn():
+    return sqlite3.connect("on_the_job.db")
 
 def criar_colaborador(nome: str, cpf: str, data_adm: str, cargo: str, depart: str, nome_gestor: str, cargo_gestor: str):
     """Insere um novo colaborador no banco de dados."""
@@ -19,8 +21,7 @@ def criar_colaborador(nome: str, cpf: str, data_adm: str, cargo: str, depart: st
             """
             INSERT INTO admissao (
                 colaborador, cpf, data_adm, cargo, departamento, nome_gestor, cargo_gestor)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
-            RETURNING id
+            VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
             (nome, cpf, data_adm, cargo, depart, nome_gestor, cargo_gestor),
         )
@@ -72,7 +73,7 @@ def listar_colaborador_individual(colab_id: int):
         cursor.execute(
             """SELECT id, colaborador, cpf, data_adm, cargo, departamento, nome_gestor, cargo_gestor 
             FROM admissao 
-            WHERE id = %s
+            WHERE id = ?
             """,
             (colab_id,),
         )
@@ -102,8 +103,7 @@ def adicionar_atividade(atividade: AtividadeCreate):
         cursor.execute(
             """
             INSERT INTO atividades (colaborador_id, descricao, comentario_colaborador, status, data)
-            VALUES (%s, %s, %s, %s, %s)
-            RETURNING id
+            VALUES (?, ?, ?, ?, ?)
             """,
             (atividade.colaborador_id, atividade.descricao, atividade.comentario_colaborador, atividade.status, atividade.data),
         )
@@ -121,7 +121,7 @@ def listar_atividades_por_colaborador(colaborador_id: int):
             """
             SELECT id, colaborador_id, descricao, comentario_colaborador, status, data
             FROM atividades
-            WHERE colaborador_id = %s
+            WHERE colaborador_id = ?
             """,
             (colaborador_id,),
         )
@@ -148,8 +148,8 @@ def atualizar_atividade(id: int, colaborador_id: int, descricao: str, comentario
         cursor.execute(
             """
             UPDATE atividades
-            SET descricao = %s, comentario_colaborador = %s, status = %s
-            WHERE id = %s AND colaborador_id = %s
+            SET descricao = ?, comentario_colaborador = ?, status = ?
+            WHERE id = ? AND colaborador_id = ?
             """,
             (descricao, comentario_colaborador, status, id, colaborador_id)
         )
@@ -167,7 +167,7 @@ def get_atividade_por_id(colaborador_id: int, atividade_id: int):
             """
             SELECT id, colaborador_id, descricao, comentario_colaborador, status, data
             FROM atividades
-            WHERE colaborador_id = %s AND id = %s
+            WHERE colaborador_id = ? AND id = ?
             """,
             (colaborador_id, atividade_id),
         )
@@ -193,8 +193,8 @@ def atualizar_colaborador(id: int, nome: str, cpf: str, data_adm: str, cargo: st
         cursor.execute(
             """
             UPDATE admissao
-            SET colaborador = %s, cpf = %s, data_adm = %s, cargo = %s, departamento = %s, nome_gestor = %s, cargo_gestor = %s
-            WHERE id = %s
+            SET colaborador = ?, cpf = ?, data_adm = ?, cargo = ?, departamento = ?, nome_gestor = ?, cargo_gestor = ?
+            WHERE id = ?
             """,
             (nome, cpf, data_adm, cargo, depart, nome_gestor, cargo_gestor, id),
         )
@@ -205,9 +205,9 @@ def atualizar_colaborador(id: int, nome: str, cpf: str, data_adm: str, cargo: st
 
 
 def get_user(email: str):
-    conn = get_conn()
+    conn = sqlite3.connect("on_the_job.db")
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
+    cursor.execute("SELECT * FROM users WHERE email = ?", (email,))
     user = cursor.fetchone()
     conn.close()
     return user
@@ -215,10 +215,10 @@ def get_user(email: str):
 def create_user(user, email, senha, cargo):
     if get_user(email):
         raise HTTPException(status_code=400, detail="Usuário já existe.")
-    conn = get_conn()
+    conn = sqlite3.connect("on_the_job.db")
     cursor = conn.cursor()
     senha_hash = bcrypt.hash(senha)
-    cursor.execute("INSERT INTO users (user, email, senha, cargo) VALUES (%s, %s, %s, %s)",
+    cursor.execute("INSERT INTO users (user, email, senha, cargo) VALUES (?, ?, ?, ?)",
                    (user, email, senha_hash, cargo))
     conn.commit()
     conn.close()
@@ -247,13 +247,13 @@ def decode_token(token: str):
 def deletar_colaborador(id: int):
     conn = get_conn()
     cursor = conn.cursor()
-    cursor.execute("DELETE FROM admissao WHERE id = %s", (id,))
+    cursor.execute("DELETE FROM admissao WHERE id = ?", (id,))
     conn.commit()
     conn.close()
 
 def deletar_atividade(cid: int, atvid: int):
     conn = get_conn()
     cursor = conn.cursor()
-    cursor.execute("DELETE FROM atividades WHERE id = %s AND colaborador_id = %s", (atvid, cid,))
+    cursor.execute("DELETE FROM atividades WHERE id = ? AND colaborador_id = ?", (atvid, cid,))
     conn.commit()
     conn.close()
