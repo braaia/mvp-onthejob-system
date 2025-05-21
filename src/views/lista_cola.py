@@ -1,10 +1,10 @@
 import flet as ft
 import httpx, asyncio
-from backend.api import API_URL
+from src.backend.api import API_URL
 from views.loadingpage.loading import loading_view
-from backend.functions.temas import theme_change
-from backend.functions.formatting import hover
-from backend.auth import get_me, get_token
+from src.backend.functions.temas import theme_change
+from src.backend.functions.formatting import hover
+from src.backend.auth import get_me, get_token
 
 def lista(page: ft.Page):
     page.scroll = ft.ScrollMode.AUTO

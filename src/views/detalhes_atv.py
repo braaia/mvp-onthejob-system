@@ -1,8 +1,8 @@
 import flet as ft
 import httpx, asyncio
-from backend.api import API_URL
-from backend.auth import get_me, get_token
-from backend.functions.temas import theme_change
+from src.backend.api import API_URL
+from src.backend.auth import get_me, get_token
+from src.backend.functions.temas import theme_change
 
 def view_detalhe_atividade(page: ft.Page, cid: int, atvid: int):
 

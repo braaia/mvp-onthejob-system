@@ -1,5 +1,5 @@
 import flet as ft
-from backend.functions.formatting import hover
+from src.backend.functions.formatting import hover
 
 def register_view(page: ft.Page, signup):
     

@@ -1,5 +1,5 @@
-from backend.schemas import ColaIn, ColaOut, AtividadeCreate, AtividadeOut
-from backend import models, database
+from src.backend.schemas import ColaIn, ColaOut, AtividadeCreate, AtividadeOut
+from src.backend import models, database
 from fastapi import FastAPI, HTTPException, Depends, Header
 from fastapi.security import OAuth2PasswordRequestForm
 from typing import List

@@ -1,5 +1,5 @@
 import sqlite3
-from backend.schemas import ColaOut, AtividadeCreate, AtividadeOut
+from src.backend.schemas import ColaOut, AtividadeCreate, AtividadeOut
 from fastapi import HTTPException
 from jose import jwt, JWTError
 from passlib.hash import bcrypt

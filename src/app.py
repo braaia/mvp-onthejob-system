@@ -1,14 +1,14 @@
 import pyrebase
 import flet as ft
 import httpx
-from backend.api import API_URL
-from views import home, lista_cola, adminpage
-from views.detalhes_atv import view_detalhe_atividade
-from views.detalhes_cola import view_detalhes
-from views.loginpage import login, forgot, register
-from views.loadingpage.loading import loading_view
-from backend.functions.temas import tema_claro, tema_escuro
-from backend.auth import login_tokens, registrar_click, get_token
+from src.backend.api import API_URL
+from src.views import home, lista_cola, adminpage
+from src.views.detalhes_atv import view_detalhe_atividade
+from src.views.detalhes_cola import view_detalhes
+from src.views.loginpage import login, forgot, register
+from src.views.loadingpage.loading import loading_view
+from src.backend.functions.temas import tema_claro, tema_escuro
+from src.backend.auth import login_tokens, registrar_click, get_token
 
 firebaseConfig = {
     'apiKey': "AIzaSyDHhIIK5DtHzk3rBmnjl9wEe-YyAVw6Gh0",

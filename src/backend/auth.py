@@ -1,5 +1,5 @@
 import httpx
-from backend.api import API_URL
+from src.backend.api import API_URL
 
 # Aqui você pode armazenar o token em memória
 token = None

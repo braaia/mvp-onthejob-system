@@ -1,11 +1,11 @@
 import httpx, asyncio
 import flet as ft
 from functools import partial
-from backend.api import API_URL
-from backend.functions.temas import theme_change
+from src.backend.api import API_URL
+from src.backend.functions.temas import theme_change
 from views.loadingpage.loading import loading_view
-from backend.functions.formatting import hover
-from backend.auth import get_me, get_token
+from src.backend.functions.formatting import hover
+from src.backend.auth import get_me, get_token
 from datetime import datetime
 
 def view_detalhes(page: ft.Page, colab_id: int):
