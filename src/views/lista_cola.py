@@ -1,7 +1,7 @@
 import flet as ft
 import httpx, asyncio
 from src.backend.api import API_URL
-from views.loadingpage.loading import loading_view
+from src.views.loadingpage.loading import loading_view
 from src.backend.functions.temas import theme_change
 from src.backend.functions.formatting import hover
 from src.backend.auth import get_me, get_token
