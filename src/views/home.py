@@ -30,7 +30,16 @@ def home_view(page: ft.Page):
         cargo_g = campo_cargo_gestor.value
         
         async with httpx.AsyncClient() as client:
-            await client.post(f"{API_URL}/colaboradores", json={"colaborador": colaborador, "cpf": cpf, "data_adm": admissao, "cargo": cargo, "departamento": depto, "nome_gestor": gestor, "cargo_gestor": cargo_g})
+            await client.post(f"{API_URL}/colaboradores", json={
+                "colaborador": colaborador, 
+                "cpf": cpf, 
+                "data_adm": admissao, 
+                "cargo": cargo, 
+                "departamento": depto, 
+                "nome_gestor": gestor, 
+                "cargo_gestor": cargo_g
+                }
+            )
 
         # Clear form - RESET LOGIC CAN BE CHANGED
         campo_colab.value = ""

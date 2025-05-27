@@ -3,11 +3,11 @@ from typing import List, Optional
 from datetime import datetime
 
 class AtividadeCreate(BaseModel):
-    colaborador_id: Optional[int]
+    colaborador_id: int
     descricao: str
     comentario_colaborador: Optional[str] = None
-    status: Optional[str]
-    data: Optional[datetime]
+    status: str
+    data: datetime
 
 class AtividadeOut(AtividadeCreate):
     id: int

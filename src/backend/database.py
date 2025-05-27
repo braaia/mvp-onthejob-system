@@ -26,7 +26,7 @@ def init_db():
             colaborador_id INTEGER NOT NULL,
             descricao TEXT NOT NULL,
             comentario_colaborador TEXT,
-            status TEXT,
+            status TEXT NOT NULL,
             data TEXT NOT NULL,
             FOREIGN KEY (colaborador_id) REFERENCES admissao(id)
         )

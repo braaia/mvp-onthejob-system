@@ -1,7 +1,11 @@
 from src.backend.schemas import ColaIn, ColaOut, AtividadeCreate, AtividadeOut
 from src.backend import models, database
-from fastapi import FastAPI, HTTPException, Depends, Header
+from fastapi import FastAPI, HTTPException, Depends, Header, Body
 from fastapi.security import OAuth2PasswordRequestForm
+from fastapi.responses import StreamingResponse
+from io import BytesIO
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
 from typing import List
 import sqlite3
 
@@ -41,7 +45,7 @@ def adicionar_atividade(id: int, atividade: AtividadeCreate):
     atividade_id = models.adicionar_atividade(atividade)
     return models.get_atividade_por_id(id, atividade_id)
 
-@app.put("/colaboradores/{cid}/atividades/{atvid}", response_model=List[AtividadeOut], name="Editar Dados da Atividade do Colaborador", tags=["Atividades"])
+@app.put("/colaboradores/{cid}/atividades/{atvid}", response_model=AtividadeOut, name="Editar Dados da Atividade do Colaborador", tags=["Atividades"])
 def atualizar_atividade(cid: int, atvid: int, atividade: AtividadeCreate):
     """Atualiza os dados da atividade de um colaborador pelo ID."""
     success = models.atualizar_atividade(
@@ -61,7 +65,7 @@ def listar_colaboradores():
     return models.listar_colaborador()
 
 @app.get("/colaboradores/{id}", response_model=List[ColaOut], name="Listar Colaborador Individual", tags=["Colaboradores"])
-def listar_colaboradores(id: int):
+def listar_colaboradores_ind(id: int):
     """Lista todos os colaboradores cadastrados."""
     return models.listar_colaborador_individual(id)
 
@@ -73,7 +77,7 @@ def listar_atividades(id: int):
         raise HTTPException(status_code=404, detail="Nenhuma atividade encontrada para este colaborador")
     return atividades
 
-@app.get("/colaboradores/{cid}/atividades/{atvid}", response_model=List[AtividadeOut], name="Detalhar Atividade de um Colaborador", tags=["Atividades"])
+@app.get("/colaboradores/{cid}/atividades/{atvid}", response_model=AtividadeOut, name="Detalhar Atividade de um Colaborador", tags=["Atividades"])
 def detalhar_atividade(cid: int, atvid: int):
     """Retorna os detalhes de uma atividade específica de um colaborador."""
     atividade = models.get_atividade_por_id(cid, atvid)
@@ -182,3 +186,110 @@ def get_me(authorization: str = Header(...)):
         "email": dados["sub"],
         "cargo": dados["cargo"]
     }
+
+@app.get("/colaboradores/{cid}/atividades/{atvid}/pdf", tags=["Atividades"])
+def gerar_pdf_atividade(cid: int, atvid: int):
+    # Busca o colaborador (retorna uma lista, pegue o primeiro)
+    colaboradores = models.listar_colaborador_individual(cid)
+    if not colaboradores or len(colaboradores) == 0:
+        raise HTTPException(status_code=404, detail="Colaborador não encontrado")
+    colaborador = colaboradores[0]
+
+    atividade = models.get_atividade_por_id(cid, atvid)
+    if not atividade:
+        raise HTTPException(status_code=404, detail="Atividade não encontrada")
+
+    buffer = BytesIO()
+    p = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
+
+    p.setFont("Helvetica-Bold", 20)
+    p.drawCentredString(width / 2, height - 55, "Formulário On The Job")
+
+    p.setFont("Helvetica-Bold", 14)
+    p.drawString(50, height - 110, "Colaborador:")
+
+    p.setFont("Helvetica", 12)
+    # Dados do colaborador
+    p.drawString(70, height - 130, f"Nome: {colaborador.colaborador}")
+    p.drawString(70, height - 150, f"Cargo: {colaborador.cargo}")
+    p.drawString(70, height - 170, f"Departamento: {colaborador.departamento}")
+    p.drawString(70, height - 190, f"Data de Admissão: {colaborador.data_adm}")
+    p.drawString(70, height - 210, f"Gestor Responsável: {colaborador.nome_gestor}")
+
+    # Dados da atividade
+    p.setFont("Helvetica-Bold", 14)
+    p.drawString(50, height - 260, "Atividade:")
+
+    p.setFont("Helvetica", 12)
+    p.drawString(70, height - 280, f"Descrição: {atividade.descricao}")
+    p.drawString(70, height - 300, f"Comentário do Colaborador: {atividade.comentario_colaborador or 'Nenhum'}")
+    p.drawString(70, height - 320, f"Status: {atividade.status}")
+    p.drawString(70, height - 340, f"Data da Atividade: {atividade.data.strftime('%Y-%m-%d')}")
+    
+    p.showPage()
+    p.save()
+    buffer.seek(0)
+
+    return StreamingResponse(buffer, media_type="application/pdf", headers={
+        "Content-Disposition": f"attachment; filename=atividade_{atvid}_colab_{cid}.pdf"
+    })
+
+@app.post("/colaboradores/{cid}/atividades/pdf", tags=["Atividades"])
+def gerar_pdf_multiplas_atividades(cid: int, atividade_ids: list[int] = Body(...)):
+    colaboradores = models.listar_colaborador_individual(cid)
+    if not colaboradores or len(colaboradores) == 0:
+        raise HTTPException(status_code=404, detail="Colaborador não encontrado")
+    colaborador = colaboradores[0]
+
+    atividades = []
+    for aid in atividade_ids:
+        atv = models.get_atividade_por_id(cid, aid)
+        if atv:
+            atividades.append(atv)
+
+    if not atividades:
+        raise HTTPException(status_code=404, detail="Nenhuma atividade encontrada")
+
+    buffer = BytesIO()
+    p = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
+
+    p.setFont("Helvetica-Bold", 20)
+    p.drawCentredString(width / 2, height - 55, "Formulário On The Job - Multiplas Atividades")
+
+    p.setFont("Helvetica-Bold", 14)
+    p.drawString(50, height - 110, "Colaborador:")
+
+    p.setFont("Helvetica", 12)
+    p.drawString(70, height - 130, f"Nome: {colaborador.colaborador}")
+    p.drawString(70, height - 150, f"Cargo: {colaborador.cargo}")
+    p.drawString(70, height - 170, f"Departamento: {colaborador.departamento}")
+    p.drawString(70, height - 190, f"Data de Admissão: {colaborador.data_adm}")
+    p.drawString(70, height - 210, f"Gestor Responsável: {colaborador.nome_gestor}")
+
+    y = height - 260
+    for idx, atv in enumerate(atividades, start=1):
+        if y < 120:
+            p.showPage()
+            y = height - 50
+        p.setFont("Helvetica-Bold", 14)
+        p.drawString(50, y, f"Atividade {idx}:")
+        y -= 20
+        p.setFont("Helvetica", 12)
+        p.drawString(70, y, f"Descrição: {atv.descricao}")
+        y -= 20
+        p.drawString(70, y, f"Comentário: {atv.comentario_colaborador or 'Nenhum'}")
+        y -= 20
+        p.drawString(70, y, f"Status: {atv.status}")
+        y -= 20
+        p.drawString(70, y, f"Data: {atv.data.strftime('%Y-%m-%d')}")
+        y -= 40
+
+    p.showPage()
+    p.save()
+    buffer.seek(0)
+
+    return StreamingResponse(buffer, media_type="application/pdf", headers={
+        "Content-Disposition": f"attachment; filename=atividades_{cid}.pdf"
+    })

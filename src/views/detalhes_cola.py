@@ -1,4 +1,4 @@
-import httpx, asyncio
+import httpx, asyncio, webbrowser
 import flet as ft
 from functools import partial
 from src.backend.api import API_URL
@@ -20,7 +20,7 @@ def view_detalhes(page: ft.Page, colab_id: int):
         spacing=10,
         scroll=ft.ScrollMode.AUTO,
         expand=True,
-        height=175,
+        height=185,
         alignment=ft.MainAxisAlignment.START,
     )
     nova_atividade = ft.TextField(label="Nova atividade", multiline=True)
@@ -105,25 +105,31 @@ def view_detalhes(page: ft.Page, colab_id: int):
                 elif response.status_code == 404:
                     page.go(f"/colaborador/{colab_id}")
                     page.open(ft.SnackBar(
-                        content=ft.Text("Atividade excluída com sucesso.", color="black"),
+                        content=ft.Text("Atividade excluída com sucesso.", size=16, color='black', weight='bold', font_family='Arial', italic=True
+                        ),
                         bgcolor="green",
                         duration=ft.Duration(seconds=2),
                     ))
                     return
                 else:
                     page.open(ft.SnackBar(
-                        content=ft.Text(f"Erro ao excluir: {response.status_code}", color="black"),
+                        content=ft.Text(f"Erro ao excluir: {response.status_code}", size=16, color='black', weight='bold', font_family='Arial', italic=True
+                        ),
                         bgcolor="red",
                         duration=ft.Duration(seconds=2),
                     ))
         except Exception as e:
             page.open(ft.SnackBar(
-                content=ft.Text(f"Erro ao excluir atividade: {e}", color="black"),
+                content=ft.Text(f"Erro ao excluir atividade: {e}", size=16, color='black', weight='bold', font_family='Arial', italic=True
+                ),
                 bgcolor="red",
                 duration=ft.Duration(seconds=2),
             ))
         finally:
             page.update()
+
+    atividades_selecionadas = set()
+    checkbox_refs = []
 
     async def carregar_detalhes():
         # Exibe a tela de loading
@@ -143,6 +149,14 @@ def view_detalhes(page: ft.Page, colab_id: int):
                     gestor.value = f"Gestor: {colab[0]['nome_gestor']}"
                     atividades_column.controls.clear()
                     for atv in colab[0]["atividades"]:
+                        cb = ft.Checkbox(
+                            label="Selecionar",
+                            value=False,
+                            on_change=lambda e, aid=atv['id']: (
+                                atividades_selecionadas.add(aid) if e.control.value else atividades_selecionadas.discard(aid)
+                            ),
+                        )
+                        checkbox_refs.append(cb)
                         atividades_column.controls.append(
                             ft.Container(
                                 content=ft.Column(
@@ -153,22 +167,24 @@ def view_detalhes(page: ft.Page, colab_id: int):
                                         ft.Text(f"Atividade: {atv['descricao']}"),
                                         ft.Text(f"Status = {atv['status']}"),
                                         ft.Text(f"Data = {atv['data'][:10]}"),
+                                        cb,
                                         ft.Row(
                                             alignment=ft.MainAxisAlignment.CENTER,
-                                            controls=[                                            
-                                            ft.ElevatedButton(
-                                                "Ver Detalhes", color=ft.Colors.SURFACE, bgcolor=ft.Colors.ON_SURFACE, on_hover=hover,
-                                                on_click=lambda e, cid=colab[0]['id'], aid=atv['id']: page.go(f"/colaborador/{cid}/atividades/{aid}")
-                                            ),
-                                            ft.ElevatedButton(
-                                                "Excluir", color=ft.Colors.SURFACE, bgcolor=ft.Colors.ON_SURFACE, on_hover=hover,
-                                                on_click=lambda e, cid=colab[0]['id'], aid=atv['id']: page.run_task(partial(excluir_atividade, e, aid=aid))
-                                            ),
-                                        ])
-                                    ]),
+                                            controls=[
+                                                ft.ElevatedButton(
+                                                    "Ver Detalhes", color=ft.Colors.SURFACE, bgcolor=ft.Colors.ON_SURFACE, on_hover=hover,
+                                                    on_click=lambda e, cid=colab[0]['id'], aid=atv['id']: page.go(f"/colaborador/{cid}/atividades/{aid}")
+                                                ),
+                                                ft.ElevatedButton(
+                                                    "Excluir", color=ft.Colors.SURFACE, bgcolor=ft.Colors.ON_SURFACE, on_hover=hover,
+                                                    on_click=lambda e, cid=colab[0]['id'], aid=atv['id']: page.run_task(partial(excluir_atividade, e, aid=aid))
+                                                ),
+                                            ]
+                                        )
+                                    ]
+                                ),
                                 padding=ft.padding.only(top=7, left=10, right=10, bottom=7),
                                 width=307,
-                                height=140,
                                 border=ft.border.all(1),
                                 border_radius=10,
                                 bgcolor=ft.Colors.TRANSPARENT,
@@ -182,6 +198,35 @@ def view_detalhes(page: ft.Page, colab_id: int):
         # Atualiza a página com os dados carregados
         page.views.clear()
         page.views.append(layout)
+        page.update()
+
+    def desmarcar_todas(e):
+        atividades_selecionadas.clear()
+        for cb in checkbox_refs:
+            cb.value = False
+        page.update()
+
+    async def gerar_pdf_selecionadas(e):
+        if not atividades_selecionadas:
+            status.value = "Selecione pelo menos uma atividade."
+            page.update()
+            return
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    f"{API_URL}/colaboradores/{colab_id}/atividades/pdf",
+                    json=list(atividades_selecionadas),
+                    headers={"Authorization": f"Bearer {get_token()}"}
+                )
+                if response.status_code == 200:
+                    # Salva o PDF temporariamente e abre
+                    with open("relatorio_atividades.pdf", "wb") as f:
+                        f.write(response.content)
+                    webbrowser.open("relatorio_atividades.pdf")
+                else:
+                    status.value = f"Erro ao gerar PDF: {response.text}"
+        except Exception as ex:
+            status.value = f"Erro: {ex}"
         page.update()
 
     async def adicionar_atividade(e):
@@ -237,20 +282,23 @@ def view_detalhes(page: ft.Page, colab_id: int):
                 elif response.status_code == 404:
                     page.go("/lista_cola")
                     page.open(ft.SnackBar(
-                        content=ft.Text("Colaborador excluído com sucesso.", color="black"),
+                        content=ft.Text("Colaborador excluído com sucesso.", size=16, color='black', weight='bold', font_family='Arial', italic=True
+                        ),
                         bgcolor="green",
                         duration=ft.Duration(seconds=2),
                     ))
                     return
                 else:
                     page.open(ft.SnackBar(
-                        content=ft.Text(f"Erro ao excluir: {response.status_code}", color="black"),
+                        content=ft.Text(f"Erro ao excluir: {response.status_code}", size=16, color='black', weight='bold', font_family='Arial', italic=True
+                        ),
                         bgcolor="red",
                         duration=ft.Duration(seconds=2),
                     ))
         except Exception as e:
             page.open(ft.SnackBar(
-                content=ft.Text(f"Erro ao excluir colaborador: {e}", color="black"),
+                content=ft.Text(f"Erro ao excluir colaborador: {e}", size=16, color='black', weight='bold', font_family='Arial', italic=True
+                ),
                 bgcolor="red",
                 duration=ft.Duration(seconds=2),
             ))
@@ -301,6 +349,8 @@ def view_detalhes(page: ft.Page, colab_id: int):
                 content=ft.Row([
                     status_atividade,
                     ft.ElevatedButton("Adicionar Atividade", on_click=adicionar_atividade, on_hover=hover, bgcolor=ft.Colors.ON_SURFACE, color=ft.Colors.SURFACE),
+                    ft.ElevatedButton("Gerar PDF das Selecionadas", on_click=gerar_pdf_selecionadas, bgcolor=ft.Colors.ON_SURFACE, color=ft.Colors.SURFACE),
+                    ft.ElevatedButton("Desmarcar Todas", on_click=desmarcar_todas, bgcolor=ft.Colors.ON_SURFACE, color=ft.Colors.SURFACE),
                     ft.Container(expand=True),
                     ft.ElevatedButton("Excluir Colaborador", on_click=excluir_colaborador, on_hover=hover, bgcolor=ft.Colors.ON_SURFACE, color=ft.Colors.SURFACE),
                 ])
