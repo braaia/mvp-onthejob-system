@@ -7,6 +7,8 @@ class AtividadeCreate(BaseModel):
     descricao: str
     comentario_colaborador: Optional[str] = None
     status: str
+    assinatura_colab: Optional[str] = None
+    assinatura_gestor: Optional[str] = None
     data: datetime
 
 class AtividadeOut(AtividadeCreate):
@@ -20,6 +22,7 @@ class ColaIn(BaseModel):
     departamento: str
     nome_gestor: str
     cargo_gestor: str
+    email: str
 
 class ColaOut(ColaIn):
     id: int

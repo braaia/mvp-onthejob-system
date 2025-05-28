@@ -14,7 +14,8 @@ def init_db():
             cargo TEXT NOT NULL,
             departamento TEXT NOT NULL,
             nome_gestor TEXT NOT NULL,
-            cargo_gestor TEXT NOT NULL
+            cargo_gestor TEXT NOT NULL,
+            email TEXT NOT NULL
         )
     """)
     conn.commit()
@@ -27,6 +28,8 @@ def init_db():
             descricao TEXT NOT NULL,
             comentario_colaborador TEXT,
             status TEXT NOT NULL,
+            assinatura_colab TEXT,
+            assinatura_gestor TEXT,
             data TEXT NOT NULL,
             FOREIGN KEY (colaborador_id) REFERENCES admissao(id)
         )

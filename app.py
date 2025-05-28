@@ -1,6 +1,5 @@
-import pyrebase
 import flet as ft
-import httpx
+import pyrebase, httpx, warnings, re
 from src.backend.api import API_URL
 from src.views import home, lista_cola, adminpage
 from src.views.detalhes_atv import view_detalhe_atividade
@@ -9,6 +8,8 @@ from src.views.loginpage import login, forgot, register
 from src.views.loadingpage.loading import loading_view
 from src.backend.functions.temas import tema_claro, tema_escuro
 from src.backend.auth import login_tokens, registrar_click, get_token
+
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 firebaseConfig = {
     'apiKey': "AIzaSyDHhIIK5DtHzk3rBmnjl9wEe-YyAVw6Gh0",
@@ -70,7 +71,6 @@ def main(page: ft.Page):
     }
 
     # Login function - AUTHENTICATION LOGIC CAN BE MODIFIED
-    import re
     async def btn_login(e):
         global email_login, senha_login
         

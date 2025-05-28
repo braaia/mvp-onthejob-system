@@ -12,7 +12,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 def get_conn():
     return sqlite3.connect("on_the_job.db")
 
-def criar_colaborador(nome: str, cpf: str, data_adm: str, cargo: str, depart: str, nome_gestor: str, cargo_gestor: str):
+def criar_colaborador(nome: str, cpf: str, data_adm: str, cargo: str, depart: str, nome_gestor: str, cargo_gestor: str, email: str):
     """Insere um novo colaborador no banco de dados."""
     conn = get_conn()
     cursor = conn.cursor()
@@ -20,10 +20,10 @@ def criar_colaborador(nome: str, cpf: str, data_adm: str, cargo: str, depart: st
         cursor.execute(
             """
             INSERT INTO admissao (
-                colaborador, cpf, data_adm, cargo, departamento, nome_gestor, cargo_gestor)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+                colaborador, cpf, data_adm, cargo, departamento, nome_gestor, cargo_gestor, email)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """,
-            (nome, cpf, data_adm, cargo, depart, nome_gestor, cargo_gestor),
+            (nome, cpf, data_adm, cargo, depart, nome_gestor, cargo_gestor, email),
         )
         conn.commit()
         cid = cursor.lastrowid
@@ -36,6 +36,7 @@ def criar_colaborador(nome: str, cpf: str, data_adm: str, cargo: str, depart: st
             departamento=depart,
             nome_gestor=nome_gestor,
             cargo_gestor=cargo_gestor,
+            email=email,
             atividades=[]
         )
     finally:
@@ -46,7 +47,7 @@ def listar_colaborador():
     conn = get_conn()
     cursor = conn.cursor()
     try:
-        cursor.execute("SELECT id, colaborador, cpf, data_adm, cargo, departamento, nome_gestor, cargo_gestor FROM admissao")
+        cursor.execute("SELECT id, colaborador, cpf, data_adm, cargo, departamento, nome_gestor, cargo_gestor, email FROM admissao")
         rows = cursor.fetchall()
         return [
             ColaOut(
@@ -58,6 +59,7 @@ def listar_colaborador():
                 departamento=row[5],
                 nome_gestor=row[6],
                 cargo_gestor=row[7],
+                email=row[8],
                 atividades=listar_atividades_por_colaborador(row[0])
             )
             for row in rows
@@ -71,7 +73,7 @@ def listar_colaborador_individual(colab_id: int):
     cursor = conn.cursor()
     try:
         cursor.execute(
-            """SELECT id, colaborador, cpf, data_adm, cargo, departamento, nome_gestor, cargo_gestor 
+            """SELECT id, colaborador, cpf, data_adm, cargo, departamento, nome_gestor, cargo_gestor, email
             FROM admissao 
             WHERE id = ?
             """,
@@ -88,10 +90,36 @@ def listar_colaborador_individual(colab_id: int):
                 departamento=row[5],
                 nome_gestor=row[6],
                 cargo_gestor=row[7],
+                email=row[8],
                 atividades=listar_atividades_por_colaborador(row[0])
             )
             for row in rows
         ]
+    finally:
+        conn.close()
+
+def listar_colaborador_por_email(email: str):
+    conn = get_conn()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SELECT * FROM admissao WHERE email = ?", (email,))
+        row = cursor.fetchone()
+        if row:
+            colaborador = {
+                "id": row[0],
+                "colaborador": row[1],
+                "cpf": row[2],
+                "data_adm": row[3],
+                "cargo": row[4],
+                "departamento": row[5],
+                "nome_gestor": row[6],
+                "cargo_gestor": row[7],
+                "email": row[8],
+                "atividades": listar_atividades_por_colaborador(row[0])
+            }
+            return [colaborador]
+        else:
+            return []
     finally:
         conn.close()
 
@@ -102,10 +130,10 @@ def adicionar_atividade(atividade: AtividadeCreate):
     try:
         cursor.execute(
             """
-            INSERT INTO atividades (colaborador_id, descricao, comentario_colaborador, status, data)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO atividades (colaborador_id, descricao, comentario_colaborador, status, assinatura_colab, assinatura_gestor, data)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
-            (atividade.colaborador_id, atividade.descricao, atividade.comentario_colaborador, atividade.status, atividade.data),
+            (atividade.colaborador_id, atividade.descricao, atividade.comentario_colaborador, atividade.status, atividade.assinatura_colab, atividade.assinatura_gestor, atividade.data),
         )
         conn.commit()
         return cursor.lastrowid
@@ -119,7 +147,7 @@ def listar_atividades_por_colaborador(colaborador_id: int):
     try:
         cursor.execute(
             """
-            SELECT id, colaborador_id, descricao, comentario_colaborador, status, data
+            SELECT id, colaborador_id, descricao, comentario_colaborador, status, assinatura_colab, assinatura_gestor, data
             FROM atividades
             WHERE colaborador_id = ?
             """,
@@ -133,14 +161,16 @@ def listar_atividades_por_colaborador(colaborador_id: int):
                 descricao=row[2],
                 comentario_colaborador=row[3],
                 status=row[4],
-                data=row[5]
+                assinatura_colab=row[5],
+                assinatura_gestor=row[6],
+                data=row[7]
             )
             for row in rows
         ]
     finally:
         conn.close()
 
-def atualizar_atividade(id: int, colaborador_id: int, descricao: str, comentario_colaborador: str, status: str):
+def atualizar_atividade(id: int, colaborador_id: int, descricao: str, comentario_colaborador: str, status: str, ass_col: str, ass_ges: str):
     """Atualiza os dados de um colaborador pelo ID."""
     conn = get_conn()
     cursor = conn.cursor()
@@ -148,10 +178,10 @@ def atualizar_atividade(id: int, colaborador_id: int, descricao: str, comentario
         cursor.execute(
             """
             UPDATE atividades
-            SET descricao = ?, comentario_colaborador = ?, status = ?
+            SET descricao = ?, comentario_colaborador = ?, status = ?, assinatura_colab = ?, assinatura_gestor = ?
             WHERE id = ? AND colaborador_id = ?
             """,
-            (descricao, comentario_colaborador, status, id, colaborador_id)
+            (descricao, comentario_colaborador, status, ass_col, ass_ges, id, colaborador_id)
         )
         conn.commit()
         return cursor.rowcount > 0
@@ -165,7 +195,7 @@ def get_atividade_por_id(colaborador_id: int, atividade_id: int):
     try:
         cursor.execute(
             """
-            SELECT id, colaborador_id, descricao, comentario_colaborador, status, data
+            SELECT id, colaborador_id, descricao, comentario_colaborador, status, assinatura_colab, assinatura_gestor, data
             FROM atividades
             WHERE colaborador_id = ? AND id = ?
             """,
@@ -179,13 +209,15 @@ def get_atividade_por_id(colaborador_id: int, atividade_id: int):
                 descricao=row[2],
                 comentario_colaborador=row[3],
                 status=row[4],
-                data=row[5]
+                assinatura_colab=row[5],
+                assinatura_gestor=row[6],
+                data=row[7]
             )
         return None
     finally:
         conn.close()
 
-def atualizar_colaborador(id: int, nome: str, cpf: str, data_adm: str, cargo: str, depart: str, nome_gestor: str, cargo_gestor: str):
+def atualizar_colaborador(id: int, nome: str, cpf: str, data_adm: str, cargo: str, depart: str, nome_gestor: str, cargo_gestor: str, email: str):
     """Atualiza os dados de um colaborador pelo ID."""
     conn = get_conn()
     cursor = conn.cursor()
@@ -193,10 +225,10 @@ def atualizar_colaborador(id: int, nome: str, cpf: str, data_adm: str, cargo: st
         cursor.execute(
             """
             UPDATE admissao
-            SET colaborador = ?, cpf = ?, data_adm = ?, cargo = ?, departamento = ?, nome_gestor = ?, cargo_gestor = ?
+            SET colaborador = ?, cpf = ?, data_adm = ?, cargo = ?, departamento = ?, nome_gestor = ?, cargo_gestor = ?, email = ?
             WHERE id = ?
             """,
-            (nome, cpf, data_adm, cargo, depart, nome_gestor, cargo_gestor, id),
+            (nome, cpf, data_adm, cargo, depart, nome_gestor, cargo_gestor, email, id),
         )
         conn.commit()
         return cursor.rowcount > 0

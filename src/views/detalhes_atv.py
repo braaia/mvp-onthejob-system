@@ -5,6 +5,8 @@ from src.backend.api import API_URL
 from src.backend.auth import get_me, get_token
 from src.backend.functions.formatting import hover
 from src.backend.functions.temas import theme_change
+from functools import partial
+from src.backend.functions.logout import logout
 
 def view_detalhe_atividade(page: ft.Page, cid: int, atvid: int):
 
@@ -50,16 +52,27 @@ def view_detalhe_atividade(page: ft.Page, cid: int, atvid: int):
         ft.PopupMenuItem(content=user_name, on_click=lambda _: print(user_name)),
         ft.PopupMenuItem(),
         ft.PopupMenuItem('Lista de Colaboradores', on_click=lambda _: page.go("/lista_cola")),
+        ft.PopupMenuItem(),
+        ft.PopupMenuItem('Sair', on_click=lambda e: page.run_task(partial(logout, page, e)))
     ]
 
-    async def popmenu():
+    chk_colab = ft.Checkbox(label="Assinatura do colaborador")
+    chk_gestor = ft.Checkbox(label="Assinatura do gestor", visible=False)
+
+    async def handle_admin():
         dados = await get_me()  # Tenta obter os dados do usuário autenticado
 
         if dados and dados['cargo'] == 'admin':
             popup_items.extend([
+                ft.PopupMenuItem(),
                 ft.PopupMenuItem('Formulário', on_click=lambda _: page.go("/")),
                 ft.PopupMenuItem('Admin', on_click=lambda _: page.go('/admin')),
             ])
+
+            chk_gestor.visible = True
+            chk_colab.visible = False
+            page.update()
+
         return popup_items
 
     status = ft.Text(color=ft.Colors.RED)
@@ -74,7 +87,7 @@ def view_detalhe_atividade(page: ft.Page, cid: int, atvid: int):
         ],
         width=400,
     )
-    
+
     async def carregar_atividade():
         page.views.clear()
         page.views.append(loading_view())
@@ -109,6 +122,8 @@ def view_detalhe_atividade(page: ft.Page, cid: int, atvid: int):
         page.update()
         
     async def salvar_edicao(e):
+        ass_colab = "Assinado" if chk_colab.value else "Não Assinado"
+        ass_gestor = "Assinado" if chk_gestor.value else "Não Assinado"
         try:
             # Busque os dados atuais da atividade para preencher os campos obrigatórios
             async with httpx.AsyncClient() as client:
@@ -120,6 +135,8 @@ def view_detalhe_atividade(page: ft.Page, cid: int, atvid: int):
                         "descricao": colab["descricao"],
                         "comentario_colaborador": comentario_field.value,
                         "status": status_atividade.value,
+                        "assinatura_colab": ass_colab,
+                        "assinatura_gestor": ass_gestor,
                         "data": colab["data"]
                     }
                     r = await client.put(
@@ -134,6 +151,7 @@ def view_detalhe_atividade(page: ft.Page, cid: int, atvid: int):
                             duration=ft.Duration(seconds=2),
                         ))
                         comentario_field.value = ""
+                        status_atividade.value = None
                         page.update()
                         await carregar_atividade()
                     else:
@@ -183,7 +201,11 @@ def view_detalhe_atividade(page: ft.Page, cid: int, atvid: int):
                         content=atividades,
                     ),
                     comentario_field,
-                    status_atividade,
+                    ft.Row([
+                        status_atividade,
+                        chk_colab,
+                        chk_gestor,
+                    ]),
                     status,
                     ft.Row([
                         ft.ElevatedButton("Salvar", on_click=salvar_edicao, on_hover=hover, bgcolor=ft.Colors.ON_SURFACE, color=ft.Colors.SURFACE),
@@ -195,6 +217,6 @@ def view_detalhe_atividade(page: ft.Page, cid: int, atvid: int):
     )
 
     page.run_task(carregar_atividade)
-    page.run_task(popmenu)
+    page.run_task(handle_admin)
 
     return layout

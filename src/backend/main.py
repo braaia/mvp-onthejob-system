@@ -36,6 +36,7 @@ def criar_colaborador(colaborador: ColaIn):
         colaborador.departamento,
         colaborador.nome_gestor,
         colaborador.cargo_gestor,
+        colaborador.email
     )
 
 @app.post("/colaboradores/{id}/atividades", response_model=AtividadeOut, name="Adicionar Atividade a um Colaborador", tags=["Atividades"])
@@ -53,16 +54,23 @@ def atualizar_atividade(cid: int, atvid: int, atividade: AtividadeCreate):
         cid,
         atividade.descricao,
         atividade.comentario_colaborador,
-        atividade.status
+        atividade.status,
+        atividade.assinatura_colab,
+        atividade.assinatura_gestor
     )
     if not success:
         raise HTTPException(status_code=404, detail="Atividade ou Colaborador não encontrado")
     return models.get_atividade_por_id(cid, atvid)
 
 @app.get("/colaboradores", response_model=List[ColaOut], name="Listar Colaboradores", tags=["Colaboradores"])
-def listar_colaboradores():
-    """Lista todos os colaboradores cadastrados."""
-    return models.listar_colaborador()
+def listar_colaboradores(authorization: str = Header(...)):
+    token = authorization.split(" ")[1]
+    dados = models.decode_token(token)
+    if dados["cargo"] == "admin":
+        return models.listar_colaborador()
+    else:
+        # Buscar colaborador pelo email do usuário logado
+        return models.listar_colaborador_por_email(dados["sub"])
 
 @app.get("/colaboradores/{id}", response_model=List[ColaOut], name="Listar Colaborador Individual", tags=["Colaboradores"])
 def listar_colaboradores_ind(id: int):
@@ -225,7 +233,9 @@ def gerar_pdf_atividade(cid: int, atvid: int):
     p.drawString(70, height - 280, f"Descrição: {atividade.descricao}")
     p.drawString(70, height - 300, f"Comentário do Colaborador: {atividade.comentario_colaborador or 'Nenhum'}")
     p.drawString(70, height - 320, f"Status: {atividade.status}")
-    p.drawString(70, height - 340, f"Data da Atividade: {atividade.data.strftime('%Y-%m-%d')}")
+    p.drawString(70, height - 340, f"Assinatura do Colaborador: {atividade.assinatura_colab}")
+    p.drawString(70, height - 360, f"Assinatura do Gestor: {atividade.assinatura_gestor}")
+    p.drawString(70, height - 380, f"Data da Atividade: {atividade.data.strftime('%Y-%m-%d')}")
     
     p.showPage()
     p.save()
@@ -283,7 +293,11 @@ def gerar_pdf_multiplas_atividades(cid: int, atividade_ids: list[int] = Body(...
         y -= 20
         p.drawString(70, y, f"Status: {atv.status}")
         y -= 20
-        p.drawString(70, y, f"Data: {atv.data.strftime('%Y-%m-%d')}")
+        p.drawString(70, y, f"Assinatura do Colaborador: {atv.assinatura_colab}")
+        y -= 20
+        p.drawString(70, y, f"Assinatura do Gestor: {atv.assinatura_gestor}")
+        y -= 20
+        p.drawString(70, y, f"Data: {atv.data.strftime('%d-%m-%Y')}")
         y -= 40
 
     p.showPage()

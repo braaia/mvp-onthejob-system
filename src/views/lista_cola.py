@@ -1,6 +1,8 @@
 import flet as ft
 import httpx, asyncio
 from src.backend.api import API_URL
+from functools import partial
+from src.backend.functions.logout import logout
 from src.views.loadingpage.loading import loading_view
 from src.backend.functions.temas import theme_change
 from src.backend.functions.formatting import hover
@@ -37,6 +39,8 @@ def lista(page: ft.Page):
 
     popup_items = [
         ft.PopupMenuItem(content=user_name, on_click=lambda _: print(user_name)),
+        ft.PopupMenuItem(),
+        ft.PopupMenuItem('Sair', on_click=lambda e: page.run_task(partial(logout, page, e)))
     ]
 
     async def popmenu():
@@ -60,7 +64,10 @@ def lista(page: ft.Page):
         try:
             # Faz a requisição para a API
             async with httpx.AsyncClient() as client:
-                r = await client.get(f"{API_URL}/colaboradores")
+                r = await client.get(
+                    f"{API_URL}/colaboradores",
+                    headers={"Authorization": f"Bearer {get_token()}"}
+                )
                 colaboradores = r.json()
 
             list.controls.clear()

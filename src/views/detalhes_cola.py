@@ -1,6 +1,7 @@
 import httpx, asyncio, webbrowser
 import flet as ft
 from functools import partial
+from src.backend.functions.logout import logout
 from src.backend.api import API_URL
 from src.backend.functions.temas import theme_change
 from src.views.loadingpage.loading import loading_view
@@ -12,7 +13,7 @@ def view_detalhes(page: ft.Page, colab_id: int):
     page.scroll = ft.ScrollMode.AUTO
 
     nome = ft.Text()
-    cargo = ft.Text()
+    email = ft.Text()
     depart = ft.Text()
     gestor = ft.Text()
 
@@ -23,7 +24,7 @@ def view_detalhes(page: ft.Page, colab_id: int):
         height=185,
         alignment=ft.MainAxisAlignment.START,
     )
-    nova_atividade = ft.TextField(label="Nova atividade", multiline=True)
+    nova_atividade = ft.TextField(label="Nova atividade", multiline=True, visible=False)
 
     status_atividade = ft.Dropdown(
         label="Status",
@@ -33,8 +34,11 @@ def view_detalhes(page: ft.Page, colab_id: int):
             ft.dropdown.Option("Pendente"),
         ],
         width=400,
+        visible=False
     )
     status = ft.Text(color=ft.Colors.RED)
+    adc_atv = ft.ElevatedButton("Adicionar Atividade", on_click=None, on_hover=hover, bgcolor=ft.Colors.ON_SURFACE, color=ft.Colors.SURFACE, visible=False)
+    exc_colb = ft.ElevatedButton("Excluir Colaborador", on_click=None, on_hover=hover, bgcolor=ft.Colors.ON_SURFACE, color=ft.Colors.SURFACE, visible=False)
 
     user_name = ft.Text("Carregando...")
 
@@ -78,16 +82,32 @@ def view_detalhes(page: ft.Page, colab_id: int):
         ft.PopupMenuItem(content=user_name),
         ft.PopupMenuItem(),
         ft.PopupMenuItem('Lista de Colaboradores', on_click=lambda _: page.go("/lista_cola")),
+        ft.PopupMenuItem(),
+        ft.PopupMenuItem('Sair', on_click=lambda e: page.run_task(partial(logout, page, e)))
     ]
+
+    is_admin = {"value": False}
     
-    async def popmenu():
+    async def handle_admin():
         dados = await get_me()  # Tenta obter os dados do usuário autenticado
 
         if dados and dados['cargo'] == 'admin':
+            is_admin["value"] = True
             popup_items.extend([
+                ft.PopupMenuItem(),
                 ft.PopupMenuItem('Formulário', on_click=lambda _: page.go("/")),
                 ft.PopupMenuItem('Admin', on_click=lambda _: page.go('/admin')),
             ])
+
+            status_atividade.visible = True
+            adc_atv.visible = True
+            exc_colb.visible = True
+            nova_atividade.visible = True
+            adc_atv.on_click = adicionar_atividade
+            exc_colb.on_click = excluir_colaborador
+            page.update()
+        else:
+            is_admin["value"] = False
         return popup_items
     
     async def excluir_atividade(e, aid):
@@ -143,8 +163,8 @@ def view_detalhes(page: ft.Page, colab_id: int):
                 r = await client.get(f"{API_URL}/colaboradores/{colab_id}")
                 if r.status_code == 200:
                     colab = r.json()
-                    nome.value = f"Nome: {colab[0]['colaborador']}"
-                    cargo.value = f"Cargo: {colab[0]['cargo']}"
+                    nome.value = f"Nome: {colab[0]['colaborador']} / Cargo: {colab[0]['cargo']}"
+                    email.value = f"Email: {colab[0]['email']}"
                     depart.value = f"Departamento: {colab[0]['departamento']}"
                     gestor.value = f"Gestor: {colab[0]['nome_gestor']}"
                     atividades_column.controls.clear()
@@ -157,6 +177,19 @@ def view_detalhes(page: ft.Page, colab_id: int):
                             ),
                         )
                         checkbox_refs.append(cb)
+                        row_controls = [
+                            ft.ElevatedButton(
+                                "Ver Detalhes", color=ft.Colors.SURFACE, bgcolor=ft.Colors.ON_SURFACE, on_hover=hover,
+                                on_click=lambda e, cid=colab[0]['id'], aid=atv['id']: page.go(f"/colaborador/{cid}/atividades/{aid}")
+                            )
+                        ]
+                        if is_admin["value"]:
+                            row_controls.append(
+                                ft.ElevatedButton(
+                                    "Excluir", color=ft.Colors.SURFACE, bgcolor=ft.Colors.ON_SURFACE, on_hover=hover,
+                                    on_click=lambda e, aid=atv['id']: page.run_task(partial(excluir_atividade, e, aid=aid))
+                                )
+                            )
                         atividades_column.controls.append(
                             ft.Container(
                                 content=ft.Column(
@@ -170,16 +203,7 @@ def view_detalhes(page: ft.Page, colab_id: int):
                                         cb,
                                         ft.Row(
                                             alignment=ft.MainAxisAlignment.CENTER,
-                                            controls=[
-                                                ft.ElevatedButton(
-                                                    "Ver Detalhes", color=ft.Colors.SURFACE, bgcolor=ft.Colors.ON_SURFACE, on_hover=hover,
-                                                    on_click=lambda e, cid=colab[0]['id'], aid=atv['id']: page.go(f"/colaborador/{cid}/atividades/{aid}")
-                                                ),
-                                                ft.ElevatedButton(
-                                                    "Excluir", color=ft.Colors.SURFACE, bgcolor=ft.Colors.ON_SURFACE, on_hover=hover,
-                                                    on_click=lambda e, cid=colab[0]['id'], aid=atv['id']: page.run_task(partial(excluir_atividade, e, aid=aid))
-                                                ),
-                                            ]
+                                            controls=row_controls
                                         )
                                     ]
                                 ),
@@ -329,7 +353,7 @@ def view_detalhes(page: ft.Page, colab_id: int):
             ft.Container(
                 content=ft.Column([
                     ft.TextButton("← Voltar à Lista", on_click=lambda _: page.go("/lista_cola")),
-                    nome, cargo, depart, gestor,
+                    nome, email, depart, gestor,
                     ft.Divider(),
                     ft.Text("Atividades:", weight="bold", size=24),
                 ]),
@@ -348,11 +372,11 @@ def view_detalhes(page: ft.Page, colab_id: int):
                 padding=ft.padding.only(bottom=25),
                 content=ft.Row([
                     status_atividade,
-                    ft.ElevatedButton("Adicionar Atividade", on_click=adicionar_atividade, on_hover=hover, bgcolor=ft.Colors.ON_SURFACE, color=ft.Colors.SURFACE),
                     ft.ElevatedButton("Gerar PDF das Selecionadas", on_click=gerar_pdf_selecionadas, bgcolor=ft.Colors.ON_SURFACE, color=ft.Colors.SURFACE),
                     ft.ElevatedButton("Desmarcar Todas", on_click=desmarcar_todas, bgcolor=ft.Colors.ON_SURFACE, color=ft.Colors.SURFACE),
                     ft.Container(expand=True),
-                    ft.ElevatedButton("Excluir Colaborador", on_click=excluir_colaborador, on_hover=hover, bgcolor=ft.Colors.ON_SURFACE, color=ft.Colors.SURFACE),
+                    adc_atv,
+                    exc_colb,
                 ])
             )
         ]
@@ -361,6 +385,6 @@ def view_detalhes(page: ft.Page, colab_id: int):
     # Executa a tarefa de carregar os detalhes ao iniciar a página
     page.run_task(carregar_detalhes)
     # page.run_task(atividades)
-    page.run_task(popmenu)
+    page.run_task(handle_admin)
 
     return layout

@@ -3,6 +3,8 @@ import httpx, asyncio
 from src.backend.api import API_URL
 from src.backend.functions import temas
 from src.backend.auth import get_token
+from functools import partial
+from src.backend.functions.logout import logout
 
 def admin(page: ft.Page):
     alvo_email = ft.TextField(label="Email do usuário", border_color=ft.Colors.ON_SURFACE)
@@ -72,6 +74,8 @@ def admin(page: ft.Page):
                             ft.PopupMenuItem(),
                             ft.PopupMenuItem('Lista de Colaboradores', on_click=lambda _: page.go("/lista_cola")),
                             ft.PopupMenuItem('Formulário', on_click=lambda _: page.go('/')),
+                            ft.PopupMenuItem(),
+                            ft.PopupMenuItem('Sair', on_click=lambda e: page.run_task(partial(logout, page, e)))
                         ]
                     ),
                 ],

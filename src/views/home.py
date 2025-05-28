@@ -4,25 +4,28 @@ from src.backend.api import API_URL
 from reportlab.pdfgen import canvas # PDF generation library
 from reportlab.lib.pagesizes import A4 # A4 page size for PDF
 from src.backend.functions import formatting, temas
+from functools import partial
+from src.backend.functions.logout import logout
 from src.backend.functions.formatting import hover
 from src.backend.auth import get_token
 
 def home_view(page: ft.Page):
 
-    # FORM FIELDS - ALL CAN BE CUSTOMIZED (LABELS, SIZES, ETC.)
-    campo_colab = ft.TextField(label="Nome do colaborador", border_color=ft.Colors.ON_SURFACE, width=520, height=105)
-    campo_matricula = ft.TextField(label="Matrícula ou CPF", border_color=ft.Colors.ON_SURFACE, width=350, height=105, on_change=formatting.formatar_cpf)
-    campo_admissao = ft.TextField(label="Data de admissão", border_color=ft.Colors.ON_SURFACE, width=210, height=105, on_change=formatting.formatar_data)
-    campo_cargo = ft.TextField(label="Cargo", width=550, border_color=ft.Colors.ON_SURFACE, height=105)
-    campo_departamento = ft.TextField(label="Departamento", border_color=ft.Colors.ON_SURFACE, width=550, height=105)
-    campo_gestor = ft.TextField(label="Nome do gestor", border_color=ft.Colors.ON_SURFACE, width=550, height=105)
-    campo_cargo_gestor = ft.TextField(label="Cargo do gestor", border_color=ft.Colors.ON_SURFACE, width=550, height=105)
+    field_height = 70
 
-    # FORM SUBMISSION - MAIN LOGIC CAN BE MODIFIED
+    campo_colab = ft.TextField(label="Nome do colaborador", border_color=ft.Colors.ON_SURFACE, width=500, height=field_height)
+    campo_matricula = ft.TextField(label="Matrícula ou CPF", border_color=ft.Colors.ON_SURFACE, width=320, height=field_height, on_change=formatting.formatar_cpf)
+    campo_email = ft.TextField(label="Email do Colaborador", border_color=ft.Colors.ON_SURFACE, width=500, height=field_height)
+    campo_admissao = ft.TextField(label="Data de admissão", border_color=ft.Colors.ON_SURFACE, width=320, height=field_height, on_change=formatting.formatar_data)
+    campo_cargo = ft.TextField(label="Cargo", border_color=ft.Colors.ON_SURFACE, width=410, height=field_height)
+    campo_departamento = ft.TextField(label="Departamento", border_color=ft.Colors.ON_SURFACE, width=410, height=field_height)
+    campo_gestor = ft.TextField(label="Nome do gestor", border_color=ft.Colors.ON_SURFACE, width=410, height=field_height)
+    campo_cargo_gestor = ft.TextField(label="Cargo do gestor", border_color=ft.Colors.ON_SURFACE, width=410, height=field_height)
+
     async def enviar_formulario(e):
-        # Get all field values
         colaborador = campo_colab.value
         cpf = campo_matricula.value
+        email = campo_email.value
         admissao = campo_admissao.value
         cargo = campo_cargo.value
         depto = campo_departamento.value
@@ -32,7 +35,8 @@ def home_view(page: ft.Page):
         async with httpx.AsyncClient() as client:
             await client.post(f"{API_URL}/colaboradores", json={
                 "colaborador": colaborador, 
-                "cpf": cpf, 
+                "cpf": cpf,
+                "email": email,
                 "data_adm": admissao, 
                 "cargo": cargo, 
                 "departamento": depto, 
@@ -44,6 +48,7 @@ def home_view(page: ft.Page):
         # Clear form - RESET LOGIC CAN BE CHANGED
         campo_colab.value = ""
         campo_matricula.value = ""
+        campo_email.value = ""
         campo_cargo.value = ""
         campo_departamento.value = ""
         campo_admissao.value = ""
@@ -125,18 +130,34 @@ def home_view(page: ft.Page):
                             ft.PopupMenuItem(),
                             ft.PopupMenuItem('Lista de Colaboradores', on_click=lambda _: page.go("/lista_cola")),
                             ft.PopupMenuItem('Admin', on_click=lambda _: page.go('/admin')),
+                            ft.PopupMenuItem(),
+                            ft.PopupMenuItem('Sair', on_click=lambda e: page.run_task(partial(logout, page, e)))
                         ]
                     ),
                 ],
             ),
-            ft.Text("Admissão Colaborador", size=22, weight="bold", offset=ft.Offset(x=0, y=-0.95)),
-            ft.Row([campo_colab, campo_matricula, campo_admissao], spacing=20, alignment=ft.MainAxisAlignment.CENTER),
-            ft.Row([campo_cargo, campo_departamento], spacing=20, alignment=ft.MainAxisAlignment.CENTER),
-            ft.Text("Gestor", size=22, weight="bold", offset=ft.Offset(x=0, y=-0.95)),
-            ft.Row([campo_gestor, campo_cargo_gestor],spacing=20, alignment=ft.MainAxisAlignment.CENTER),
-            status,
             ft.Container(
-                content=botao_enviar,
+                content=ft.Column([
+                    ft.Text("Admissão Colaborador", size=22, weight="bold", text_align="center", offset=ft.Offset(x=0, y=-0.78)),
+                    ft.Row([campo_colab, campo_matricula], spacing=20, alignment=ft.MainAxisAlignment.CENTER),
+                    ft.Row([campo_email, campo_admissao], spacing=20, alignment=ft.MainAxisAlignment.CENTER),
+                    ft.Row([campo_cargo, campo_departamento], spacing=20, alignment=ft.MainAxisAlignment.CENTER),
+                    ft.Text("Gestor", size=18, weight="bold", text_align="center", offset=ft.Offset(x=0, y=-0.56)),
+                    ft.Row([campo_gestor, campo_cargo_gestor], spacing=20, alignment=ft.MainAxisAlignment.CENTER),
+                    status,
+                    ft.Container(
+                        content=botao_enviar,
+                        alignment=ft.alignment.center,
+                        margin=ft.margin.only(top=-18)
+                    ),
+                ],
+                spacing=15,
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER
+                ),
+                padding=30,
+                border_radius=15,
+                width=1280,
+                margin=ft.margin.only(bottom=20)
             )
         ]
     )
