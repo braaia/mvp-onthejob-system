@@ -11,16 +11,6 @@ from src.backend.auth import login_tokens, registrar_click, get_token
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-firebaseConfig = {
-    'apiKey': "AIzaSyDHhIIK5DtHzk3rBmnjl9wEe-YyAVw6Gh0",
-    'authDomain': "login-8c6e5.firebaseapp.com",
-    'projectId': "logstoin-8c6e5",
-    'storageBucket': "login-8c6e5.firebaserage.app",
-    'databaseURL': "https://login.firebaseio.com",
-    'messagingSenderId': "122238070396",
-    'appId': "1:122238070396:web:481369b81774e5681b63f9",
-    'measurementId': "G-E7LJQY1GE0"
-}
 
 firebase = pyrebase.initialize_app(firebaseConfig)
 auth = firebase.auth()
