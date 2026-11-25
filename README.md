@@ -2,7 +2,8 @@
 # On The Job — Employee Activity Management System
 
 <p align="center">
-  <strong>🇧🇷 Português | 🇺🇸 English</strong>
+  <a href="#português">🇧🇷 Português</a> |
+  <a href="#english">🇺🇸 English</a>
 </p>
 
 <p align="center">
