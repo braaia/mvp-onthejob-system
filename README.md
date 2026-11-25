@@ -19,7 +19,7 @@
 </p>
 
 ---
-
+<a id="português"></a>
 ## 🇧🇷 Português
 
 ### Sobre o projeto
@@ -224,7 +224,7 @@ O projeto ainda pode receber melhorias de arquitetura, segurança, tratamento de
 - LinkedIn: [linkedin.com/in/wesleynog](https://www.linkedin.com/in/wesleynog/)
 
 ---
-
+<a id="english"></a>
 ## 🇺🇸 English
 
 ### About the project
